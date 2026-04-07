@@ -218,7 +218,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
             <tbody>
               {attendanceArr.length === 0 ? (
                 <tr><td colSpan={3} className="text-center py-10 text-slate-400 font-bold">لا يوجد سجلات مسجلة</td></tr>
-              ) : attendanceArr.sort((a,b) => b.date.localeCompare(a.date)).map((rec: any, i: number) => {
+              ) : attendanceArr.sort((a: any, b: any) => b.date.localeCompare(a.date)).map((rec: any, i: number) => {
                 const cfg = statusConfig[rec.status as AttendanceStatus];
                 const disc = rec.status === 'absent' ? worker.daily_rate : rec.status === 'late' ? worker.daily_rate * 0.25 : 0;
                 return (
