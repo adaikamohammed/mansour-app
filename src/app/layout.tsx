@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import Sidebar from '@/components/Sidebar';
@@ -14,12 +14,15 @@ const cairo = Cairo({
   display: 'swap',
 });
 
+export const viewport: Viewport = {
+  themeColor: '#7c3aed',
+};
+
 export const metadata: Metadata = {
   title: 'ألفا ستورج | إدارة المخزن والعمال',
   description: 'نظام متكامل لإدارة المخزن والعمال والمهام — ألفا ستورج',
   keywords: ['مخزن', 'عمال', 'حضور', 'مهام', 'تقارير'],
   manifest: '/manifest.json',
-  themeColor: '#7c3aed',
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
