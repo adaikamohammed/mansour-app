@@ -11,6 +11,7 @@ import { useInventory } from '@/lib/hooks/useInventory';
 import Badge from '@/components/ui/Badge';
 import { formatCurrency, formatNumber, getInitials } from '@/lib/utils';
 import { Select } from '@/components/ui/Input';
+import { useAuth, canEdit } from '@/lib/auth';
 
 // دالة لتوليد أيام الشهر بالكامل بناءً على (YYYY-MM)
 function getMonthRange(yearMonth: string) {
@@ -25,6 +26,8 @@ function getMonthRange(yearMonth: string) {
 export default function FinancePage() {
   const { workers, loading: wLoad } = useWorkers();
   const { items, sales, loading: iLoad } = useInventory();
+  const { role } = useAuth();
+  const isManager = canEdit(role);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
   const [absentPenalty, setAbsentPenalty] = useState(1);
   const [latePenalty, setLatePenalty] = useState(0.25);
@@ -112,17 +115,19 @@ export default function FinancePage() {
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
           {/* إعدادات الخصم */}
-          <div className="flex bg-white dark:bg-slate-900 shadow-sm p-1 rounded-2xl items-center border border-slate-100 dark:border-slate-800" title="تخصيص نسبة الخصم من الأجر لحالات الغياب والتأخر">
-             <div className="flex items-center px-3">
-              <span className="text-xs font-bold text-slate-500 mr-2">غياب:</span>
-              <input type="number" step="0.1" min="0" value={absentPenalty} title="نسبة الخصم لكل يوم غياب" aria-label="نسبة خصم الغياب" onChange={e => setAbsentPenalty(Number(e.target.value))} className="w-12 text-sm font-black text-rose-600 bg-transparent outline-none dir-ltr" />
+          {isManager && (
+            <div className="flex bg-white dark:bg-slate-900 shadow-sm p-1 rounded-2xl items-center border border-slate-100 dark:border-slate-800" title="تخصيص نسبة الخصم من الأجر لحالات الغياب والتأخر">
+               <div className="flex items-center px-3">
+                <span className="text-xs font-bold text-slate-500 mr-2">غياب:</span>
+                <input type="number" step="0.1" min="0" value={absentPenalty} title="نسبة الخصم لكل يوم غياب" aria-label="نسبة خصم الغياب" onChange={e => setAbsentPenalty(Number(e.target.value))} className="w-12 text-sm font-black text-rose-600 bg-transparent outline-none dir-ltr" />
+              </div>
+              <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+              <div className="flex items-center px-3">
+                <span className="text-xs font-bold text-slate-500 mr-2">تأخر:</span>
+                <input type="number" step="0.1" min="0" value={latePenalty} title="نسبة الخصم لكل يوم تأخر" aria-label="نسبة خصم التأخر" onChange={e => setLatePenalty(Number(e.target.value))} className="w-12 text-sm font-black text-amber-600 bg-transparent outline-none dir-ltr" />
+              </div>
             </div>
-            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
-            <div className="flex items-center px-3">
-              <span className="text-xs font-bold text-slate-500 mr-2">تأخر:</span>
-              <input type="number" step="0.1" min="0" value={latePenalty} title="نسبة الخصم لكل يوم تأخر" aria-label="نسبة خصم التأخر" onChange={e => setLatePenalty(Number(e.target.value))} className="w-12 text-sm font-black text-amber-600 bg-transparent outline-none dir-ltr" />
-            </div>
-          </div>
+          )}
 
           <div className="relative">
             <CalendarDays size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500" />

@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Cairo } from 'next/font/google';
 import './globals.css';
-import Sidebar from '@/components/Sidebar';
-import Topbar from '@/components/Topbar';
-import PageWrapper from '@/components/PageWrapper';
+import MainLayout from '@/components/MainLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/ui/Toast';
 
@@ -45,20 +43,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="font-cairo antialiased">
         <ThemeProvider>
           <ToastProvider>
-            <div className="flex min-h-screen">
-              {/* الشريط الجانبي */}
-              <Sidebar />
-
-              {/* المحتوى الرئيسي */}
-              <main className="flex-1 transition-all duration-300 min-h-screen" style={{ marginRight: 'var(--sidebar-width, 0px)' }}>
-                <div className="p-5 sm:p-8 max-w-[1400px] mx-auto">
-                  <Topbar />
-                  <PageWrapper>
-                    {children}
-                  </PageWrapper>
-                </div>
-              </main>
-            </div>
+            <MainLayout>
+              {children}
+            </MainLayout>
           </ToastProvider>
         </ThemeProvider>
       </body>

@@ -7,6 +7,7 @@ import {
   Save, Calendar, ClipboardList, LayoutGrid
 } from 'lucide-react';
 import { useWorkers } from '@/lib/hooks/useWorkers';
+import { useAuth, canEdit } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
@@ -71,6 +72,8 @@ function generateMonthDates(yearMonth: string) {
 
 export default function AttendancePage() {
   const { workers, loading } = useWorkers();
+  const { role } = useAuth();
+  const isManager = canEdit(role);
   const { success, error: toastError } = useToast();
   
   // Tabs State
@@ -272,23 +275,25 @@ export default function AttendancePage() {
             </div>
 
             {/* ─── أزرار وضع الكل ─── */}
-            <div className="flex flex-wrap gap-2 px-2">
-              <span className="text-xs font-black text-slate-400 self-center ml-2">تحديد الكل:</span>
-              {(['present', 'absent', 'late'] as AttendanceStatus[]).map(s => (
-                <button
-                  key={s}
-                  onClick={() => markAll(s)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                    s === 'present' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' :
-                    s === 'absent'  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-400' :
-                                      'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400'
-                  }`}
-                >
-                  {statusConfig[s].icon}
-                  {STATUS_LABELS[s]}
-                </button>
-              ))}
-            </div>
+            {isManager && (
+              <div className="flex flex-wrap gap-2 px-2">
+                <span className="text-xs font-black text-slate-400 self-center ml-2">تحديد الكل:</span>
+                {(['present', 'absent', 'late'] as AttendanceStatus[]).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => markAll(s)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                      s === 'present' ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                      s === 'absent'  ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 dark:bg-rose-900/30 dark:text-rose-400' :
+                                        'bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400'
+                    }`}
+                  >
+                    {statusConfig[s].icon}
+                    {STATUS_LABELS[s]}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* ─── قائمة العمال ─── */}
             {loading ? (
@@ -315,9 +320,9 @@ export default function AttendancePage() {
                         <div className="flex items-center gap-4 p-4">
                           {/* زر الحالة */}
                           <button
-                            onClick={() => cycleStatus(worker.id)}
-                            className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 ${cfg.bg}`}
-                            title={`تغيير حالة حضور ${worker.name} (حاضر/غائب/متأخر)`}
+                            onClick={() => isManager && cycleStatus(worker.id)}
+                            className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 ${cfg.bg} ${isManager ? 'cursor-pointer' : 'cursor-default'}`}
+                            title={isManager ? `تغيير حالة حضور ${worker.name} (حاضر/غائب/متأخر)` : ''}
                             aria-label={`تغيير حالة حضور ${worker.name}`}
                           >
                             {cfg.icon}
@@ -376,6 +381,7 @@ export default function AttendancePage() {
                                 placeholder="اكتب سبب الغياب أو التأخر هنا..."
                                 value={rec?.note ?? ''}
                                 rows={2}
+                                disabled={!isManager}
                                 onChange={e => setRecords(prev => ({
                                   ...prev,
                                   [worker.id]: { ...prev[worker.id], note: e.target.value },
@@ -391,7 +397,7 @@ export default function AttendancePage() {
               </div>
             )}
 
-            {workers.length > 0 && (
+            {workers.length > 0 && isManager && (
               <div className="sticky bottom-6 flex justify-center pt-4">
                 <Button onClick={saveAttendance} loading={saving} icon={<Save size={18} />} size="lg" className="shadow-2xl shadow-violet-500/30 px-12">
                   حفظ حضور اليوم ({workers.length} عامل)
@@ -481,8 +487,8 @@ export default function AttendancePage() {
                             return (
                               <button
                                 key={date}
-                                onClick={() => toggleHistoryStatus(worker, date)}
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center relative group/dot transition-all hover:scale-110 hover:shadow-lg focus:outline-none ${bgStyle}`}
+                                onClick={() => isManager && toggleHistoryStatus(worker, date)}
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center relative group/dot transition-all ${isManager ? 'hover:scale-110 hover:shadow-lg focus:outline-none' : 'cursor-default'} ${bgStyle}`}
                               >
                                 {!status && <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 opacity-50" />}
                                 

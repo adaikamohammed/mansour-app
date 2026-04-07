@@ -7,6 +7,7 @@ import {
   ClipboardCheck, ListTodo, Flame, LayoutGrid, Search,
 } from 'lucide-react';
 import { useTasks } from '@/lib/hooks/useTasks';
+import { useAuth, canEdit } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -35,6 +36,8 @@ const emptyForm: TaskFormData = { title: '', description: '', target_date: '', p
 
 export default function TasksPage() {
   const { tasks, loading, addTask, updateTask, deleteTask, toggleComplete, pendingCount, completedCount, highCount } = useTasks();
+  const { role } = useAuth();
+  const isManager = canEdit(role);
   const { success, error: toastError } = useToast();
 
   const [tab, setTab] = useState<FilterTab>('all');
@@ -175,9 +178,11 @@ export default function TasksPage() {
           </div>
 
           {/* زر الإضافة */}
-          <Button onClick={openAdd} icon={<Plus size={16} />} size="sm" className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
-            مهمة جديدة
-          </Button>
+          {isManager && (
+            <Button onClick={openAdd} icon={<Plus size={16} />} size="sm" className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+              مهمة جديدة
+            </Button>
+          )}
         </div>
       </div>
 
@@ -195,7 +200,7 @@ export default function TasksPage() {
           </div>
           <p className="text-xl font-black text-slate-700 dark:text-slate-200">لا توجد مهام</p>
           <p className="text-sm text-slate-400 mt-2 mb-6">ابدأ بإضافة مهمة جديدة</p>
-          <Button onClick={openAdd} icon={<Plus size={16} />} size="sm">إضافة أول مهمة</Button>
+          {isManager && <Button onClick={openAdd} icon={<Plus size={16} />} size="sm">إضافة أول مهمة</Button>}
         </div>
       ) : (
         <AnimatePresence mode="popLayout">
@@ -215,12 +220,12 @@ export default function TasksPage() {
                 <div className="flex items-center gap-4 p-3">
                   {/* زر الإنجاز */}
                   <motion.button
-                    whileTap={{ scale: 0.82 }}
-                    onClick={() => handleToggle(task)}
+                    whileTap={isManager ? { scale: 0.82 } : {}}
+                    onClick={() => isManager && handleToggle(task)}
                     className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                       task.is_completed
                         ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-dashed border-slate-300 dark:border-slate-600 hover:border-violet-400 hover:text-violet-600'
+                        : `bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-dashed border-slate-300 dark:border-slate-600 ${isManager ? 'hover:border-violet-400 hover:text-violet-600 cursor-pointer' : 'cursor-default'}`
                     }`}
                     aria-label={task.is_completed ? 'إلغاء الإنجاز' : 'تحديد كمنجز'}
                   >
@@ -253,22 +258,24 @@ export default function TasksPage() {
                   </div>
 
                   {/* أزرار الإجراءات */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
-                    <button
-                      onClick={() => openEdit(task)}
-                      className="p-2.5 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
-                      title="تعديل"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteTarget(task)}
-                      className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                      title="حذف"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
+                  {isManager && (
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
+                      <button
+                        onClick={() => openEdit(task)}
+                        className="p-2.5 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
+                        title="تعديل"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteTarget(task)}
+                        className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                        title="حذف"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             ))}

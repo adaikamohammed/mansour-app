@@ -8,6 +8,7 @@ import {
   ArrowUpRight, ArrowDownRight, ShoppingCart, DollarSign
 } from 'lucide-react';
 import { useInventory } from '@/lib/hooks/useInventory';
+import { useAuth, canEdit } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -36,6 +37,8 @@ const emptyForm: InventoryFormData = { main_type: 'carton', sub_type: '', unit: 
 
 export default function InventoryPage() {
   const { items, loading, addItem, editItem, sellItem, updateQuantity, deleteItem, totalItems, lowStockItems } = useInventory();
+  const { role } = useAuth();
+  const isManager = canEdit(role);
   const { success, error: toastError, warning } = useToast();
 
   const [activeType, setActiveType] = useState<InventoryMainType | 'all'>('all');
@@ -230,9 +233,11 @@ export default function InventoryPage() {
             </button>
           )}
         </div>
-        <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
-          إضافة صنف
-        </Button>
+        {isManager && (
+          <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+            إضافة صنف
+          </Button>
+        )}
       </div>
 
       {/* ─── جدول المخزون ─── */}
@@ -245,7 +250,7 @@ export default function InventoryPage() {
           </div>
           <p className="text-xl font-black text-slate-700 dark:text-white">لا توجد أصناف</p>
           <p className="text-sm text-slate-400 mt-2 mb-5">ابدأ بإضافة أصناف المخزون</p>
-          <Button onClick={() => setShowAddModal(true)} icon={<Plus size={16} />} size="sm">إضافة أول صنف</Button>
+          {isManager && <Button onClick={() => setShowAddModal(true)} icon={<Plus size={16} />} size="sm">إضافة أول صنف</Button>}
         </div>
       ) : (
         <div className="glass-card rounded-4xl overflow-hidden shadow-xl">
@@ -296,13 +301,15 @@ export default function InventoryPage() {
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => handleQtyChange(item.id, -1, qty)}
-                            className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/20 flex items-center justify-center transition-all"
-                          >
-                            <Minus size={13} />
-                          </button>
-                          {isEditingQty ? (
+                          {isManager && (
+                            <button
+                              onClick={() => handleQtyChange(item.id, -1, qty)}
+                              className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/20 flex items-center justify-center transition-all"
+                            >
+                              <Minus size={13} />
+                            </button>
+                          )}
+                          {isEditingQty && isManager ? (
                             <input
                               type="number"
                               value={qtyEdit?.val}
@@ -314,19 +321,21 @@ export default function InventoryPage() {
                             />
                           ) : (
                             <button
-                              onClick={() => setQtyEdit({ id: item.id, val: String(qty) })}
-                              className="text-lg font-black text-slate-900 dark:text-white w-20 text-center hover:text-violet-600 transition-colors"
-                              title="انقر للتعديل المباشر"
+                              onClick={() => isManager && setQtyEdit({ id: item.id, val: String(qty) })}
+                              className={`text-lg font-black w-20 text-center ${isManager ? 'hover:text-violet-600 cursor-pointer text-slate-900 dark:text-white transition-colors' : 'text-slate-900 dark:text-white cursor-default'}`}
+                              title={isManager ? "انقر للتعديل المباشر" : ""}
                             >
                               {formatNumber(qty)}
                             </button>
                           )}
-                          <button
-                            onClick={() => handleQtyChange(item.id, 1, qty)}
-                            className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/20 flex items-center justify-center transition-all"
-                          >
-                            <Plus size={13} />
-                          </button>
+                          {isManager && (
+                            <button
+                              onClick={() => handleQtyChange(item.id, 1, qty)}
+                              className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/20 flex items-center justify-center transition-all"
+                            >
+                              <Plus size={13} />
+                            </button>
+                          )}
                         </div>
                       </td>
                       <td className="text-center">
@@ -340,30 +349,36 @@ export default function InventoryPage() {
                       </td>
                       <td>
                         <div className="flex justify-center gap-1">
-                          <button
-                            onClick={() => setSellTarget({ id: item.id, name: item.sub_type, unit_price: item.unit_price, maxQty: qty })}
-                            className="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all font-black flex items-center gap-1 text-xs"
-                            title="بيع"
-                            disabled={qty <= 0}
-                          >
-                            <ShoppingCart size={15} />
-                            بيع
-                          </button>
-                          <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 self-center mx-1" />
-                          <button
-                            onClick={() => openEditModal(item)}
-                            className="p-2 rounded-xl text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
-                            title="تعديل"
-                          >
-                            <Edit2 size={15} />
-                          </button>
-                          <button
-                            onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }}
-                            className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                            title="حذف"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                          {isManager ? (
+                            <>
+                              <button
+                                onClick={() => setSellTarget({ id: item.id, name: item.sub_type, unit_price: item.unit_price, maxQty: qty })}
+                                className="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all font-black flex items-center gap-1 text-xs"
+                                title="بيع"
+                                disabled={qty <= 0}
+                              >
+                                <ShoppingCart size={15} />
+                                بيع
+                              </button>
+                              <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 self-center mx-1" />
+                              <button
+                                onClick={() => openEditModal(item)}
+                                className="p-2 rounded-xl text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
+                                title="تعديل"
+                              >
+                                <Edit2 size={15} />
+                              </button>
+                              <button
+                                onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }}
+                                className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
+                                title="حذف"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-xs font-bold text-slate-400">للقراءة فقط</span>
+                          )}
                         </div>
                       </td>
                     </motion.tr>

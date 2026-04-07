@@ -8,6 +8,7 @@ import {
   MoreVertical, X, ChevronDown, Plus,
 } from 'lucide-react';
 import { useWorkers } from '@/lib/hooks/useWorkers';
+import { useAuth, canEdit } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
@@ -31,6 +32,8 @@ const emptyForm: WorkerFormData = {
 
 export default function WorkersPage() {
   const { workers, loading, addWorker, updateWorker, deleteWorker, presentCount, absentCount, lateCount } = useWorkers();
+  const { role } = useAuth();
+  const isManager = canEdit(role);
   const { success, error: toastError } = useToast();
 
   const [filter, setFilter] = useState<FilterStatus>('all');
@@ -197,9 +200,11 @@ export default function WorkersPage() {
             </button>
           )}
         </div>
-        <Button onClick={openAdd} icon={<UserPlus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
-          إضافة عامل
-        </Button>
+        {isManager && (
+          <Button onClick={openAdd} icon={<UserPlus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+            إضافة عامل
+          </Button>
+        )}
       </div>
 
       {/* ─── شبكة العمال ─── */}
@@ -214,7 +219,7 @@ export default function WorkersPage() {
           </div>
           <p className="text-xl font-black text-slate-700 dark:text-white">لا يوجد عمال مطابقون</p>
           <p className="text-sm text-slate-400 mt-2 mb-6">جرّب تغيير معايير البحث</p>
-          <Button onClick={openAdd} icon={<UserPlus size={16} />} size="sm">إضافة عامل جديد</Button>
+          {isManager && <Button onClick={openAdd} icon={<UserPlus size={16} />} size="sm">إضافة عامل جديد</Button>}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -237,20 +242,24 @@ export default function WorkersPage() {
                   <div className="h-24 bg-gradient-to-l from-violet-600 to-indigo-500 relative">
                     {/* قائمة الخيارات */}
                     <div className="absolute top-3 left-3 flex gap-1.5">
-                      <button
-                        onClick={() => openEdit(worker)}
-                        className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40 transition-all"
-                        title="تعديل"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => setDeleteTarget(worker)}
-                        className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-rose-400/60 transition-all"
-                        title="حذف"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                      {isManager && (
+                        <>
+                          <button
+                            onClick={() => openEdit(worker)}
+                            className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40 transition-all"
+                            title="تعديل"
+                          >
+                            <Edit2 size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTarget(worker)}
+                            className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-rose-400/60 transition-all"
+                            title="حذف"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
