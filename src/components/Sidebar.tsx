@@ -10,6 +10,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth';
+import { LogOut } from 'lucide-react';
 
 const navItems = [
   { name: 'لوحة التحكم', href: '/',                   icon: LayoutDashboard, badge: null },
@@ -24,6 +26,7 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
+  const { role, signOut } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
@@ -71,9 +74,9 @@ export default function Sidebar() {
           {(!collapsed || mobile) && (
             <div>
               <h1 className="text-lg font-black tracking-tight bg-gradient-to-l from-violet-600 to-indigo-500 bg-clip-text text-transparent leading-none">
-                ألفا ستورج
+                مخزن منصور
               </h1>
-              <p className="text-[10px] text-slate-400 font-bold mt-0.5">نظام إدارة متكامل</p>
+              <p className="text-[10px] text-slate-400 font-bold mt-0.5">إدارة المخزن والعمال</p>
             </div>
           )}
         </div>
@@ -224,6 +227,22 @@ export default function Sidebar() {
           {(!collapsed || mobile) && (
             <span>{theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}</span>
           )}
+        </button>
+
+        {/* زر تسجيل الخروج */}
+        <button
+          onClick={signOut}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-3 rounded-2xl',
+            'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20',
+            'transition-all duration-300 font-bold text-sm',
+            collapsed && !mobile ? 'justify-center' : '',
+          )}
+          aria-label="تسجيل الخروج"
+          title={role === 'manager' ? 'تسجيل خروج مدير المخزن' : 'تسجيل الخروج'}
+        >
+          <LogOut size={20} />
+          {(!collapsed || mobile) && <span>تسجيل الخروج</span>}
         </button>
       </div>
     </div>

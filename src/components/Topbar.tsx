@@ -6,6 +6,7 @@ import { Bell, Calendar, Package } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
 import { useInventory } from '@/lib/hooks/useInventory';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/lib/auth';
 
 const PAGE_TITLES: Record<string, string> = {
   '/':          'لوحة التحكم',
@@ -20,7 +21,12 @@ export default function Topbar() {
   const pathname = usePathname();
   const [now, setNow] = useState(new Date());
   const { lowStockItems } = useInventory();
+  const { role } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
+
+  // الاسم الظاهر: فقط "منصور" للمدير، وأيقونة مجهولة للمراقب
+  const displayName = role === 'manager' ? 'منصور' : '•••';
+  const displayRole = role === 'manager' ? 'مدير المخزن' : 'مراقب';
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 60000);
@@ -29,7 +35,7 @@ export default function Topbar() {
 
   const title = Object.entries(PAGE_TITLES).find(([path]) =>
     path === '/' ? pathname === '/' : pathname.startsWith(path)
-  )?.[1] ?? 'ألفا ستورج';
+  )?.[1] ?? 'مخزن منصور';
 
   return (
     <header className="flex items-center justify-between mb-8 pb-6 border-b border-slate-200/60 dark:border-slate-800/60 relative z-30">
@@ -106,11 +112,11 @@ export default function Topbar() {
         {/* بطاقة المستخدم */}
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm relative z-30">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
-            م
+            {displayName[0] ?? 'م'}
           </div>
           <div className="hidden sm:block">
-            <p className="text-xs font-black text-slate-700 dark:text-slate-200 leading-none">المشرف</p>
-            <p className="text-[10px] text-slate-400 font-medium mt-0.5">مدير النظام</p>
+            <p className="text-xs font-black text-slate-700 dark:text-slate-200 leading-none">{displayName}</p>
+            <p className="text-[10px] text-slate-400 font-medium mt-0.5">{displayRole}</p>
           </div>
         </div>
       </div>

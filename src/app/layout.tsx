@@ -19,8 +19,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'ألفا ستورج | إدارة المخزن والعمال',
-  description: 'نظام متكامل لإدارة المخزن والعمال والمهام — ألفا ستورج',
+  title: 'مخزن منصور | إدارة المخزن والعمال',
+  description: 'نظام متكامل لإدارة المخزن والعمال والمهام — مخزن منصور',
   keywords: ['مخزن', 'عمال', 'حضور', 'مهام', 'تقارير'],
   manifest: '/manifest.json',
 };
