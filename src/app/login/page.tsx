@@ -25,7 +25,8 @@ export default function LoginPage() {
       setError('بريد إلكتروني أو كلمة مرور غير صحيحة');
       setLoading(false);
     } else {
-      router.replace('/');
+      // Full page reload to ensure session cookies are read by the proxy
+      window.location.href = '/';
     }
   };
 
