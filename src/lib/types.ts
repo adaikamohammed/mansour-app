@@ -50,6 +50,21 @@ export interface InventoryStock {
   updated_at: string;
 }
 
+export type InventoryTransactionType = 'in' | 'out';
+
+export interface InventoryTransaction {
+  id: string;
+  category_id: string;
+  type: InventoryTransactionType;
+  quantity: number;
+  previous_quantity: number | null;
+  new_quantity: number | null;
+  note: string | null;
+  created_at: string;
+  // join مع inventory_categories
+  category?: Pick<InventoryCategory, 'id' | 'main_type' | 'sub_type' | 'unit'>;
+}
+
 export interface Task {
   id: string;
   title: string;

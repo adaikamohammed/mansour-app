@@ -23,11 +23,10 @@ const navItems = [
   { name: 'المالية',     href: '/finance',             icon: Wallet,          badge: null },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const { role, signOut } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   // استعادة حالة الطي من localStorage
@@ -35,22 +34,6 @@ export default function Sidebar() {
     const saved = localStorage.getItem('sidebar-collapsed');
     if (saved === 'true') setCollapsed(true);
   }, []);
-
-  // تحديث متغير CSS للعرض
-  useEffect(() => {
-    const updateWidth = () => {
-      const isMobile = window.innerWidth < 1024;
-      if (isMobile) {
-        document.documentElement.style.setProperty('--sidebar-width', '0px');
-      } else {
-        document.documentElement.style.setProperty('--sidebar-width', collapsed ? '5.5rem' : '18rem');
-      }
-    };
-
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, [collapsed]);
 
   const toggleCollapse = () => {
     setCollapsed(prev => {
@@ -82,7 +65,7 @@ export default function Sidebar() {
         </div>
 
         {/* زر إغلاق الموبايل */}
-        {mobile && (
+        {mobile && setMobileOpen && (
           <button
             onClick={() => setMobileOpen(false)}
             className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -118,7 +101,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => mobile && setMobileOpen(false)}
+              onClick={() => mobile && setMobileOpen && setMobileOpen(false)}
               title={collapsed && !mobile ? item.name : undefined}
             >
               <motion.div
@@ -184,24 +167,6 @@ export default function Sidebar() {
 
       {/* أسفل الشريط: ثيم + معلومات */}
       <div className={cn('space-y-2', collapsed && !mobile ? 'flex flex-col items-center' : '')}>
-        {/* شريط سعة المخزن */}
-        {(!collapsed || mobile) && (
-          <div className="px-2 py-3 bg-violet-50 dark:bg-violet-900/10 rounded-2xl border border-violet-100 dark:border-violet-900/30 mx-1">
-            <div className="flex justify-between text-[10px] font-black mb-2">
-              <span className="text-slate-500 dark:text-slate-400">سعة المخزن</span>
-              <span className="text-violet-600 dark:text-violet-400">70%</span>
-            </div>
-            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: '70%' }}
-                transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-                className="h-full rounded-full bg-gradient-to-l from-violet-600 to-indigo-500"
-              />
-            </div>
-          </div>
-        )}
-
         {/* زر الثيم */}
         <button
           onClick={toggleTheme}
@@ -250,24 +215,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ═══ زر قائمة الموبايل ═══ */}
-      <button
-        onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 right-4 z-50 p-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-xl rounded-2xl border border-slate-200 dark:border-slate-700"
-        aria-label="فتح القائمة"
-      >
-        <Menu size={22} className="text-violet-600" />
-      </button>
-
       {/* ═══ الشريط الجانبي — ديسكتوب ═══ */}
       <aside
         className={cn(
-          'hidden lg:flex fixed top-0 right-0 h-full z-40',
+          'hidden lg:flex shrink-0 h-screen sticky top-0 z-40',
           'flex-col transition-all duration-300',
-          collapsed ? 'w-[5.5rem]' : 'w-72',
+          collapsed ? 'w-[5.5rem]' : 'w-[18rem]',
         )}
       >
-        <div className="h-full m-3 rounded-3xl overflow-hidden glass-card border border-white/40 dark:border-slate-800/50 shadow-2xl">
+        <div className="h-[calc(100vh-1.5rem)] my-3 mx-2 rounded-3xl overflow-hidden glass-card border border-slate-200/50 dark:border-slate-800/50 shadow-xl bg-white/50 dark:bg-slate-900/50 shadow-slate-200/20 dark:shadow-slate-900/20 flex flex-col">
           <SidebarContent />
         </div>
       </aside>
@@ -278,7 +234,7 @@ export default function Sidebar() {
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setMobileOpen(false)}
+              onClick={() => setMobileOpen && setMobileOpen(false)}
               className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[60] lg:hidden"
             />
             <motion.aside

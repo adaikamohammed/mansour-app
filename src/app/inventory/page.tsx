@@ -1,18 +1,20 @@
 'use client';
 
+'use client';
+
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Package, Box, FlaskConical, CircleDot,
-  Droplets, AlertTriangle, Edit2, Trash2, Minus, X,
-  ArrowUpRight, ArrowDownRight, ShoppingCart, DollarSign
+  Droplets, AlertTriangle, Edit2, Trash2, Minus, X, History,
+  ArrowDownToLine, ArrowUpFromLine
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useInventory } from '@/lib/hooks/useInventory';
 import { useAuth, canEdit } from '@/lib/auth';
 import { useToast } from '@/components/ui/Toast';
 import Modal from '@/components/ui/Modal';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import Badge from '@/components/ui/Badge';
 import Input, { Select } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import type { InventoryFormData, InventoryMainType } from '@/lib/types';
@@ -26,22 +28,22 @@ const CATEGORY_ICONS: Record<InventoryMainType, React.ElementType> = {
   material: Droplets,
 };
 
-const CATEGORY_COLORS: Record<InventoryMainType, { color: string; bg: string; ring: string }> = {
-  carton:   { color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20',   ring: 'ring-amber-200 dark:ring-amber-800'   },
-  bottle:   { color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20',     ring: 'ring-blue-200 dark:ring-blue-800'     },
-  cap:      { color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20', ring: 'ring-violet-200 dark:ring-violet-800' },
-  material: { color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'ring-emerald-200 dark:ring-emerald-800' },
+const CATEGORY_COLORS: Record<InventoryMainType, { color: string; bg: string; ring: string; border: string }> = {
+  carton:   { color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20',   ring: 'ring-amber-200 dark:ring-amber-800',     border: 'border-amber-500' },
+  bottle:   { color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20',     ring: 'ring-blue-200 dark:ring-blue-800',       border: 'border-blue-500' },
+  cap:      { color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20', ring: 'ring-violet-200 dark:ring-violet-800',   border: 'border-violet-500' },
+  material: { color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'ring-emerald-200 dark:ring-emerald-800', border: 'border-emerald-500' },
 };
 
 const emptyForm: InventoryFormData = { main_type: 'carton', sub_type: '', unit: 'قطعة', unit_price: 0, initial_quantity: 0 };
 
 export default function InventoryPage() {
-  const { items, loading, addItem, editItem, sellItem, updateQuantity, deleteItem, totalItems, lowStockItems } = useInventory();
+  const router = useRouter();
+  const { items, loading, error: inventoryError, addItem, editItem, updateQuantity, recordTransaction, deleteItem, lowStockItems } = useInventory();
   const { role } = useAuth();
   const isManager = canEdit(role);
   const { success, error: toastError, warning } = useToast();
 
-  const [activeType, setActiveType] = useState<InventoryMainType | 'all'>('all');
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
@@ -50,29 +52,22 @@ export default function InventoryPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<InventoryFormData>(emptyForm);
   const [errors, setErrors] = useState<Partial<InventoryFormData>>({});
-  const [qtyEdit, setQtyEdit] = useState<{ id: string; val: string } | null>(null);
 
   // حالة التعديل
   const [editTargetId, setEditTargetId] = useState<string | null>(null);
 
-  // حالة البيع
-  const [sellTarget, setSellTarget] = useState<{ id: string; name: string; unit_price: number; maxQty: number } | null>(null);
-  const [sellQty, setSellQty] = useState(1);
-  const [selling, setSelling] = useState(false);
+  // حالة الحركات (Transactions)
+  const [txTarget, setTxTarget] = useState<any>(null);
+  const [txType, setTxType] = useState<'in' | 'out'>('in');
+  const [txQty, setTxQty] = useState('');
+  const [txNote, setTxNote] = useState('');
+  const [recordingTx, setRecordingTx] = useState(false);
 
   const filtered = useMemo(() => {
     let list = items;
-    if (activeType !== 'all') list = list.filter(i => i.main_type === activeType);
     if (search) list = list.filter(i => i.sub_type.toLowerCase().includes(search.toLowerCase()));
     return list;
-  }, [items, activeType, search]);
-
-  // إحصاء لكل نوع
-  const typeCounts = useMemo(() => {
-    const counts: Record<string, number> = { carton: 0, bottle: 0, cap: 0, material: 0 };
-    items.forEach(i => { counts[i.main_type] = (counts[i.main_type] ?? 0) + 1; });
-    return counts;
-  }, [items]);
+  }, [items, search]);
 
   const validate = (): boolean => {
     const e: Partial<InventoryFormData> = {};
@@ -86,10 +81,12 @@ export default function InventoryPage() {
     if (!validate()) return;
     setSaving(true);
     let ok = false;
+    // فرض السعر صفر دائمًا لأن المخزن مخصص للاستهلاك فقط وليس للبيع
+    const formToSave = { ...form, unit_price: 0 };
     if (editTargetId) {
-      ok = await editItem(editTargetId, form);
+      ok = await editItem(editTargetId, formToSave);
     } else {
-      ok = await addItem(form);
+      ok = await addItem(formToSave);
     }
     setSaving(false);
     if (ok) {
@@ -106,28 +103,10 @@ export default function InventoryPage() {
       main_type: item.main_type,
       sub_type: item.sub_type,
       unit: item.unit,
-      unit_price: item.unit_price,
+      unit_price: 0, // تجاهل السعر
       initial_quantity: item.stock?.quantity ?? 0
     });
     setShowAddModal(true);
-  };
-
-  const handleSell = async () => {
-    if (!sellTarget) return;
-    if (sellQty <= 0 || sellQty > sellTarget.maxQty) {
-      toastError('كمية البيع غير صالحة');
-      return;
-    }
-    setSelling(true);
-    const ok = await sellItem(sellTarget.id, sellQty);
-    setSelling(false);
-    if (ok) {
-      success(`تم بيع ${sellQty} وحدة بقيمة ${formatNumber(sellQty * sellTarget.unit_price)} دج ✅`);
-      setSellTarget(null);
-      setSellQty(1);
-    } else {
-      toastError('فشلت عملية البيع');
-    }
   };
 
   const handleDelete = async () => {
@@ -139,22 +118,36 @@ export default function InventoryPage() {
     else toastError('فشل الحذف');
   };
 
-  const handleQtyChange = async (id: string, delta: number, currentQty: number) => {
-    const newQty = Math.max(0, currentQty + delta);
-    const ok = await updateQuantity(id, newQty);
-    if (ok) {
-      if (newQty <= 50) warning(`تحذير: الكمية وصلت لـ ${newQty} وحدة فقط ⚠️`);
-      else success('تم تحديث الكمية ✅');
-    } else toastError('فشل التحديث');
+  const openTransactionModal = (item: any, defaultType: 'in' | 'out') => {
+    setTxTarget(item);
+    setTxType(defaultType);
+    setTxQty('');
+    setTxNote('');
   };
 
-  const handleQtyDirect = async (id: string) => {
-    if (!qtyEdit || qtyEdit.id !== id) return;
-    const newQty = Number(qtyEdit.val);
-    if (isNaN(newQty) || newQty < 0) return;
-    const ok = await updateQuantity(id, newQty);
-    if (ok) success('تم تحديث الكمية ✅');
-    setQtyEdit(null);
+  const handleTransaction = async () => {
+    if (!txTarget) return;
+    const qty = Number(txQty);
+    if (isNaN(qty) || qty <= 0) {
+      toastError('يرجى إدخال كمية صحيحة أكبر من الصفر');
+      return;
+    }
+    const currentStock = txTarget.stock?.quantity ?? 0;
+    if (txType === 'out' && qty > currentStock) {
+      toastError('الكمية المتاحة لا تكفي لهذا الاستخراج');
+      return;
+    }
+
+    setRecordingTx(true);
+    const ok = await recordTransaction(txTarget.id, currentStock, qty, txType, txNote);
+    setRecordingTx(false);
+    
+    if (ok) {
+      success('تم تسجيل الحركة وتحديث المخزون بنجاح ✅');
+      setTxTarget(null);
+    } else {
+      toastError(inventoryError || 'فشل التسجيل. ربما لم تقم بإنشاء جدول الحركات (inventory_transactions) في Supabase!');
+    }
   };
 
   const f = (key: keyof InventoryFormData, val: string | number) =>
@@ -162,34 +155,6 @@ export default function InventoryPage() {
 
   return (
     <div className="space-y-8">
-
-      {/* ─── ملخص سريع ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {(Object.keys(MAIN_TYPE_LABELS) as InventoryMainType[]).map((type, i) => {
-          const Icon = CATEGORY_ICONS[type];
-          const { color, bg } = CATEGORY_COLORS[type];
-          const typeItems = items.filter(x => x.main_type === type);
-          const typeTotal = typeItems.reduce((s, x) => s + (x.stock?.quantity ?? 0), 0);
-          return (
-            <motion.button
-              key={type}
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07 }}
-              onClick={() => setActiveType(activeType === type ? 'all' : type)}
-              className={`glass-card rounded-3xl p-5 text-right group hover:-translate-y-1 transition-all duration-300 w-full
-                ${activeType === type ? 'ring-2 ring-violet-500/40' : ''}`}
-            >
-              <div className={`w-11 h-11 rounded-2xl ${bg} ${color} flex items-center justify-center mb-3 shadow-inner`}>
-                <Icon size={22} />
-              </div>
-              <p className="text-xs font-black text-slate-400 mb-1">{MAIN_TYPE_LABELS[type]}</p>
-              <p className={`text-2xl font-black ${color}`}>{formatNumber(typeTotal)}</p>
-              <p className="text-[10px] text-slate-400 font-bold">{typeCounts[type] ?? 0} صنف</p>
-            </motion.button>
-          );
-        })}
-      </div>
 
       {/* ─── التنبيهات ─── */}
       {lowStockItems.length > 0 && (
@@ -222,7 +187,7 @@ export default function InventoryPage() {
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input
             type="text"
-            placeholder="بحث في المخزون..."
+            placeholder="بحث في جميع أصناف المخزون..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="form-input w-full pr-12"
@@ -234,173 +199,150 @@ export default function InventoryPage() {
           )}
         </div>
         {isManager && (
-          <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
-            إضافة صنف
-          </Button>
+          <div className="flex gap-3 shrink-0">
+            <Button variant="secondary" onClick={() => router.push('/inventory/history')} icon={<History size={16} />}>
+              سجل الحركات
+            </Button>
+            <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+              إضافة صنف
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* ─── جدول المخزون ─── */}
+      {/* ─── 4 صناديق للأصناف (الجدول الجديد) ─── */}
       {loading ? (
-        <div className="space-y-3">{[1,2,3,4].map(i => <div key={i} className="h-16 skeleton rounded-2xl" />)}</div>
-      ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          <div className="w-20 h-20 rounded-3xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-5">
-            <Package size={40} className="text-slate-300 dark:text-slate-600" />
-          </div>
-          <p className="text-xl font-black text-slate-700 dark:text-white">لا توجد أصناف</p>
-          <p className="text-sm text-slate-400 mt-2 mb-5">ابدأ بإضافة أصناف المخزون</p>
-          {isManager && <Button onClick={() => setShowAddModal(true)} icon={<Plus size={16} />} size="sm">إضافة أول صنف</Button>}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1,2,3,4].map(i => <div key={i} className="h-80 skeleton rounded-4xl" />)}
         </div>
       ) : (
-        <div className="glass-card rounded-4xl overflow-hidden shadow-xl">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>الصنف</th>
-                <th className="text-center">النوع</th>
-                <th className="text-center">السعر (دج)</th>
-                <th className="text-center">الكمية</th>
-                <th className="text-center">الحالة</th>
-                <th className="text-center">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              <AnimatePresence>
-                {filtered.map((item, idx) => {
-                  const Icon = CATEGORY_ICONS[item.main_type];
-                  const { color, bg } = CATEGORY_COLORS[item.main_type];
-                  const qty = item.stock?.quantity ?? 0;
-                  const stockStatus = getStockStatus(qty);
-                  const isEditingQty = qtyEdit?.id === item.id;
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {(Object.keys(MAIN_TYPE_LABELS) as InventoryMainType[]).map((type, idx) => {
+            const Icon = CATEGORY_ICONS[type];
+            const { color, bg, border } = CATEGORY_COLORS[type];
+            const typeItems = filtered.filter(x => x.main_type === type);
+            const typeTotal = typeItems.reduce((s, x) => s + (x.stock?.quantity ?? 0), 0);
 
-                  return (
-                    <motion.tr
-                      key={item.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ delay: idx * 0.03 }}
-                    >
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl ${bg} ${color} flex items-center justify-center shrink-0`}>
-                            <Icon size={17} />
-                          </div>
-                          <div>
-                            <p className="font-black text-slate-800 dark:text-white text-sm">{item.sub_type}</p>
-                            <p className="text-[11px] text-slate-400 font-bold">{item.unit}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="text-center">
-                        <Badge variant="normal" size="sm">{MAIN_TYPE_LABELS[item.main_type]}</Badge>
-                      </td>
-                      <td className="text-center font-bold text-slate-700 dark:text-slate-200">
-                        {item.unit_price}
-                      </td>
-                      <td className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          {isManager && (
-                            <button
-                              onClick={() => handleQtyChange(item.id, -1, qty)}
-                              className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/20 flex items-center justify-center transition-all"
-                            >
-                              <Minus size={13} />
-                            </button>
-                          )}
-                          {isEditingQty && isManager ? (
-                            <input
-                              type="number"
-                              value={qtyEdit?.val}
-                              onChange={e => setQtyEdit({ id: item.id, val: e.target.value })}
-                              onBlur={() => handleQtyDirect(item.id)}
-                              onKeyDown={e => e.key === 'Enter' && handleQtyDirect(item.id)}
-                              className="w-20 text-center form-input py-1 text-sm"
-                              autoFocus
-                            />
-                          ) : (
-                            <button
-                              onClick={() => isManager && setQtyEdit({ id: item.id, val: String(qty) })}
-                              className={`text-lg font-black w-20 text-center ${isManager ? 'hover:text-violet-600 cursor-pointer text-slate-900 dark:text-white transition-colors' : 'text-slate-900 dark:text-white cursor-default'}`}
-                              title={isManager ? "انقر للتعديل المباشر" : ""}
-                            >
-                              {formatNumber(qty)}
-                            </button>
-                          )}
-                          {isManager && (
-                            <button
-                              onClick={() => handleQtyChange(item.id, 1, qty)}
-                              className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-emerald-100 hover:text-emerald-600 dark:hover:bg-emerald-900/20 flex items-center justify-center transition-all"
-                            >
-                              <Plus size={13} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                      <td className="text-center">
-                        <Badge
-                          variant={stockStatus === 'low' ? 'low' : stockStatus === 'high' ? 'high' : 'normal'}
-                          dot
-                          size="sm"
-                        >
-                          {stockStatus === 'low' ? 'منخفض' : stockStatus === 'high' ? 'وافر' : 'طبيعي'}
-                        </Badge>
-                      </td>
-                      <td>
-                        <div className="flex justify-center gap-1">
-                          {isManager ? (
-                            <>
-                              <button
-                                onClick={() => setSellTarget({ id: item.id, name: item.sub_type, unit_price: item.unit_price, maxQty: qty })}
-                                className="p-2 rounded-xl text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all font-black flex items-center gap-1 text-xs"
-                                title="بيع"
-                                disabled={qty <= 0}
-                              >
-                                <ShoppingCart size={15} />
-                                بيع
-                              </button>
-                              <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 self-center mx-1" />
-                              <button
-                                onClick={() => openEditModal(item)}
-                                className="p-2 rounded-xl text-slate-400 hover:text-violet-500 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all"
-                                title="تعديل"
-                              >
-                                <Edit2 size={15} />
-                              </button>
-                              <button
-                                onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }}
-                                className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
-                                title="حذف"
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-xs font-bold text-slate-400">للقراءة فقط</span>
-                          )}
-                        </div>
-                      </td>
-                    </motion.tr>
-                  );
-                })}
-              </AnimatePresence>
-            </tbody>
-          </table>
-          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <span className="text-xs text-slate-400 font-bold">{filtered.length} صنف</span>
-            <span className="text-xs font-black text-slate-600 dark:text-slate-300">
-              إجمالي الوحدات: {formatNumber(filtered.reduce((s,i) => s + (i.stock?.quantity ?? 0), 0))}
-            </span>
-          </div>
+            return (
+              <motion.div 
+                key={type}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className={`glass-card rounded-4xl p-6 border-t-4 border-slate-200 dark:border-slate-800 ${border} shadow-xl flex flex-col h-[480px]`}
+              >
+                {/* رأس الصندوق */}
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/60">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl ${bg} ${color} flex items-center justify-center shadow-inner`}>
+                      <Icon size={24} />
+                    </div>
+                    <div>
+                      <h2 className={`text-xl font-black ${color}`}>{MAIN_TYPE_LABELS[type]}</h2>
+                      <p className="text-xs text-slate-500 font-bold">{typeItems.length} أنواع مسجلة</p>
+                    </div>
+                  </div>
+                  <div className="text-left bg-slate-50 dark:bg-slate-900 px-4 py-2 rounded-2xl border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] text-slate-400 font-bold mb-0.5">إجمالي الوحدات المستهلكة/المتبقية</p>
+                    <p className={`text-2xl font-black ${color}`}>{formatNumber(typeTotal)}</p>
+                  </div>
+                </div>
+
+                {/* قائمة الأصناف الحية */}
+                {typeItems.length === 0 ? (
+                  <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                    <Package size={48} className="mb-4 opacity-30" />
+                    <p className="text-sm font-bold">لا يوجد أصناف مطابقة</p>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                    <AnimatePresence>
+                      {typeItems.map(item => {
+                        const qty = item.stock?.quantity ?? 0;
+                        const stockStatus = getStockStatus(qty);
+
+                        return (
+                          <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800 hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 sm:items-center justify-between group relative overflow-hidden"
+                          >
+                            {stockStatus === 'low' && (
+                              <div className="absolute top-0 right-0 w-1.5 h-full bg-rose-500" title="مخزون منخفض" />
+                            )}
+                            
+                            <div className="flex-1 min-w-0 pr-1">
+                              <p className="font-black text-slate-800 dark:text-white text-sm truncate" title={item.sub_type}>{item.sub_type}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                                  الوحدة: {item.unit}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                              {/* متحكمات الكمية */}
+                              <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60">
+                                {isManager && (
+                                  <button
+                                    onClick={() => openTransactionModal(item, 'out')}
+                                    className="w-9 h-9 rounded-lg text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/30 flex items-center justify-center transition-all bg-transparent"
+                                    title="استخراج كمية للمشروع"
+                                  >
+                                    <ArrowUpFromLine size={16} />
+                                  </button>
+                                )}
+                                
+                                <button
+                                  onClick={() => isManager && openTransactionModal(item, 'in')}
+                                  className={`w-16 text-center font-black text-xl ${isManager ? 'cursor-pointer hover:text-violet-600 dark:hover:text-violet-400' : 'cursor-default'} text-slate-900 dark:text-white`}
+                                  title="الرصيد المتاح"
+                                >
+                                  {formatNumber(qty)}
+                                </button>
+                                
+                                {isManager && (
+                                  <button
+                                    onClick={() => openTransactionModal(item, 'in')}
+                                    className="w-9 h-9 rounded-lg text-emerald-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 flex items-center justify-center transition-all bg-transparent"
+                                    title="إدخال كمية للمخزن"
+                                  >
+                                    <ArrowDownToLine size={16} />
+                                  </button>
+                                )}
+                              </div>
+
+                              {/* أزرار الإجراءات */}
+                              {isManager && (
+                                <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                  <button onClick={() => openEditModal(item)} className="p-2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="تعديل تفاصيل الصنف">
+                                    <Edit2 size={14} />
+                                  </button>
+                                  <button onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }} className="p-2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف الصنف">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </AnimatePresence>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
       {/* ─── Modal الإضافة/التعديل ─── */}
-      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={editTargetId ? "تعديل الصنف" : "إضافة صنف جديد"} size="md">
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title={editTargetId ? "تعديل الصنف" : "إضافة صنف جديد للرصيد"} size="md">
         <div className="space-y-5">
           <Select
-            label="النوع الرئيسي"
+            label="نوع الصندوق (الصنف)"
             value={form.main_type}
             onChange={e => f('main_type', e.target.value)}
           >
@@ -410,42 +352,96 @@ export default function InventoryPage() {
           </Select>
 
           <Input
-            label="اسم الصنف / المواصفة"
+            label="تفاصيل أو اسم الصنف"
             placeholder="مثال: قارورة بلاستيك 250مل شفاف"
             value={form.sub_type}
             onChange={e => f('sub_type', e.target.value)}
             error={(errors as Record<string, string>).sub_type}
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
-              label="الوحدة"
+              label="وحدة القياس"
               placeholder="قطعة، لتر، كجم..."
               value={form.unit}
               onChange={e => f('unit', e.target.value)}
               error={(errors as Record<string, string>).unit}
             />
-            <Input
-              label="سعر الوحدة (دج)"
-              type="number"
-              min="0"
-              value={String(form.unit_price)}
-              onChange={e => f('unit_price', Number(e.target.value))}
-            />
-            <Input
-              label="الكمية الابتدائية"
-              type="number"
-              min="0"
-              value={String(form.initial_quantity)}
-              onChange={e => f('initial_quantity', Number(e.target.value))}
-            />
+            {/* أزلنا حقل السعر لأن المخزن لا يحتوي على بيع/شراء فعلي بالأموال هنا */}
+            <div className={editTargetId ? "hidden" : "block"}>
+               <Input
+                 label="الكمية الابتدائية (الرصيد المتاح)"
+                 type="number"
+                 min="0"
+                 value={String(form.initial_quantity)}
+                 onChange={e => f('initial_quantity', Number(e.target.value))}
+               />
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <Button onClick={handleAdd} loading={saving} className="flex-1">{editTargetId ? 'حفظ التعديلات' : 'إضافة الصنف'}</Button>
+            <Button onClick={handleAdd} loading={saving} className="flex-1">{editTargetId ? 'حفظ التعديلات' : 'إضافة وتأكيد'}</Button>
             <Button variant="secondary" onClick={() => setShowAddModal(false)} className="flex-1">إلغاء</Button>
           </div>
         </div>
+      </Modal>
+
+      {/* ─── Modal العمليات (إدخال وإخراج) ─── */}
+      <Modal isOpen={!!txTarget} onClose={() => setTxTarget(null)} title={txType === 'in' ? "إدخال للمخزن" : "استخراج للمشروع"} size="sm">
+        {txTarget && (
+          <div className="space-y-5">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <p className="font-black text-slate-800 dark:text-white mb-1">{txTarget.sub_type}</p>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-500">الرصيد الحالي:</span>
+                <span className="font-bold text-violet-600">{txTarget.stock?.quantity ?? 0} {txTarget.unit}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button 
+                className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${txType === 'in' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 hover:bg-slate-200'}`}
+                onClick={() => setTxType('in')}
+              >
+                إدخال (+)
+              </button>
+              <button 
+                className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${txType === 'out' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 hover:bg-slate-200'}`}
+                onClick={() => setTxType('out')}
+              >
+                استخراج (-)
+              </button>
+            </div>
+
+            <Input
+              label="الكمية المطلوبة (ارقام صحيحة)"
+              type="number"
+              min="1"
+              value={txQty}
+              onChange={e => setTxQty(e.target.value)}
+              placeholder="أدخل الكمية هنا..."
+              autoFocus
+            />
+
+            <Input
+              label="ملاحظات (طبيعة الاستهلاك، اسم المستلم، رقم الشحنة...)"
+              placeholder="اختياري..."
+              value={txNote}
+              onChange={e => setTxNote(e.target.value)}
+            />
+
+            <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+              <Button 
+                onClick={handleTransaction} 
+                loading={recordingTx} 
+                className={`flex-1 !text-white ${txType === 'in' ? '!bg-emerald-500 hover:!bg-emerald-600' : '!bg-rose-500 hover:!bg-rose-600'}`}
+              >
+                تأكيد {txType === 'in' ? 'الإدخال' : 'الاستخراج'}
+              </Button>
+              <Button variant="secondary" onClick={() => setTxTarget(null)} className="flex-1">إلغاء</Button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       {/* ─── حوار الحذف ─── */}
@@ -454,48 +450,9 @@ export default function InventoryPage() {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         loading={deleting}
-        message={`هل أنت متأكد من حذف الصنف "${deleteTargetName}"؟`}
+        message={`هل أنت متأكد من حذف هذا الصنف "${deleteTargetName}" بشكل نهائي من المخزن؟`}
       />
 
-      {/* ─── Modal البيع ─── */}
-      <Modal isOpen={!!sellTarget} onClose={() => setSellTarget(null)} title="بيع مخزون" size="sm">
-        {sellTarget && (
-          <div className="space-y-6">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800">
-              <p className="font-black text-slate-800 dark:text-white">{sellTarget.name}</p>
-              <div className="flex justify-between mt-2 text-sm">
-                <span className="text-slate-500 dark:text-slate-400">سعر الوحدة:</span>
-                <span className="font-bold text-violet-600">{sellTarget.unit_price} دج</span>
-              </div>
-              <div className="flex justify-between mt-1 text-sm">
-                <span className="text-slate-500 dark:text-slate-400">الكمية المتاحة:</span>
-                <span className="font-bold text-emerald-600">{sellTarget.maxQty}</span>
-              </div>
-            </div>
-            
-            <Input
-              label="الكمية المراد بيعها"
-              type="number"
-              min="1"
-              max={String(sellTarget.maxQty)}
-              value={String(sellQty)}
-              onChange={e => setSellQty(Number(e.target.value))}
-            />
-
-            <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800/50 flex justify-between items-center">
-              <span className="font-bold text-emerald-700 dark:text-emerald-400">إجمالي السعر:</span>
-              <span className="text-xl font-black text-emerald-600">
-                {formatNumber(sellQty * sellTarget.unit_price)} دج
-              </span>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleSell} loading={selling} icon={<DollarSign size={16} />} className="flex-1 !bg-emerald-600 hover:!bg-emerald-700">تأكيد البيع</Button>
-              <Button variant="secondary" onClick={() => setSellTarget(null)} className="flex-1">إلغاء</Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

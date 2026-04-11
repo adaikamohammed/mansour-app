@@ -77,12 +77,35 @@ export function useInventory() {
     }
   };
 
-  const addStock = async (categoryId: string, quantity: number, type: 'in' | 'out', note: string): Promise<boolean> => {
+  const recordTransaction = async (categoryId: string, currentQty: number, quantity: number, type: 'in' | 'out', note?: string): Promise<boolean> => {
     try {
-      // TODO: Supabase sales insert
+      const newQty = type === 'in' ? currentQty + quantity : currentQty - quantity;
+      if (newQty < 0) throw new Error('الكمية الحالية لا تكفي لإتمام عملية الاستخراج');
+
+      // Update stock
+      const { error: err1 } = await supabase
+        .from('inventory_stock')
+        .update({ quantity: newQty, updated_at: new Date().toISOString() })
+        .eq('category_id', categoryId);
+      if (err1) throw err1;
+
+      // Insert transaction history
+      const { error: err2 } = await supabase
+        .from('inventory_transactions')
+        .insert({
+          category_id: categoryId,
+          type,
+          quantity,
+          previous_quantity: currentQty,
+          new_quantity: newQty,
+          note: note || null
+        });
+      if (err2) throw err2;
+
+      await fetchItems();
       return true;
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل عملية البيع');
+      setError(e instanceof Error ? e.message : 'فشل تسجيل العملية');
       return false;
     }
   };
@@ -104,19 +127,17 @@ export function useInventory() {
 
   return { 
     items, 
-    sales, 
     loading, 
     error, 
     fetchItems, 
     addCategory, 
     updateCategory, 
-    addStock, 
+    recordTransaction, 
     updateQuantity, 
     deleteCategory, 
     // التوافق مع الكود القديم (Aliases)
     addItem: addCategory,
     editItem: updateCategory,
-    sellItem: (catId: string, qty: number) => addStock(catId, qty, 'out', 'عملية بيع'),
     deleteItem: deleteCategory,
     totalItems, 
     lowStockItems 

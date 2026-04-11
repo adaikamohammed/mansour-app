@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Cairo } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import MainLayout from '@/components/MainLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -28,7 +29,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ar" dir="rtl" className={cairo.variable} suppressHydrationWarning>
       {/* منع وميض الثيم — يُشغَّل قبل React hydration */}
       <head>
-        <script
+        <Script
+          id="theme-switcher"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {

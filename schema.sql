@@ -43,7 +43,19 @@ CREATE TABLE inventory_stock (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. Tasks Table (المهام)
+-- 5. Inventory Transactions (سجل حركة المخزن)
+CREATE TABLE inventory_transactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID REFERENCES inventory_categories(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('in', 'out')),
+  quantity NUMERIC NOT NULL,
+  previous_quantity NUMERIC,
+  new_quantity NUMERIC,
+  note TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Tasks Table (المهام)
 CREATE TABLE tasks (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,

@@ -46,9 +46,9 @@ export default function Topbar() {
         </h1>
         <div className="flex items-center gap-2 mt-1 text-xs text-slate-400 font-medium">
           <Calendar size={13} />
-          <span>{formatDate(now.toISOString())}</span>
+          <span suppressHydrationWarning>{formatDate(now.toISOString())}</span>
           <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-          <span dir="ltr">{formatTime(now)}</span>
+          <span dir="ltr" suppressHydrationWarning>{formatTime(now)}</span>
         </div>
       </div>
 
