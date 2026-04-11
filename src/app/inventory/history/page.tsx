@@ -128,7 +128,7 @@ export default function InventoryHistoryPage() {
       ) : (
         <div className="space-y-8 pb-10">
           <AnimatePresence>
-            {Object.entries(grouped).map(([dateLabel, dayTrans], idx) => (
+            {(Object.entries(grouped) as [string, any[]][]).map(([dateLabel, dayTrans], idx) => (
               <motion.div 
                 key={dateLabel}
                 initial={{ opacity: 0, y: 10 }}
