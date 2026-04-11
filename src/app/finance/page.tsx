@@ -25,7 +25,7 @@ function getMonthRange(yearMonth: string) {
 
 export default function FinancePage() {
   const { workers, loading: wLoad } = useWorkers();
-  const { items, sales, loading: iLoad } = useInventory();
+  const { items, loading: iLoad } = useInventory();
   const { role } = useAuth();
   const isManager = canEdit(role);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
@@ -190,39 +190,6 @@ export default function FinancePage() {
             <div className="text-left">
               <p className="text-[10px] font-black text-slate-400">قيمة المخزون</p>
               <p className="text-sm font-bold text-slate-500">{formatCurrency(totalInventoryValue)}</p>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-      {/* ─── بطاقات المبيعات والأرباح ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-5">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="glass-card rounded-3xl p-6 relative overflow-hidden group border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 opacity-20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
-          <div className="w-12 h-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center mb-4 shadow-inner">
-            <TrendingUp size={24} />
-          </div>
-          <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-1">إجمالي المداخيل (مبيعات)</p>
-          <p className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(sales)}</p>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="glass-card rounded-3xl p-6 relative overflow-hidden group border-emerald-200 dark:border-emerald-800/50 hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500 opacity-20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center mb-4 shadow-inner">
-            <Wallet size={24} />
-          </div>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-1">صافي الربح المتوقع</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(sales - totalNetSalaries)}</p>
-            </div>
-            <div className="text-left text-[10px] font-black text-slate-400 leading-relaxed max-w-[120px]">
-              يتم حسابه عبر طرح "إجمالي الرواتب" من "المبيعات".
             </div>
           </div>
         </motion.div>
