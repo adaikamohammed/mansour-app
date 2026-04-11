@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Package, ClipboardList, TrendingUp, Wallet,
-  Menu, X, ChevronRight, Sun, Moon, BoxesIcon, CalendarCheck,
+  Menu, X, ChevronRight, Sun, Moon, BoxesIcon, CalendarCheck, Gem,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
@@ -21,6 +21,7 @@ const navItems = [
   { name: 'المهام',      href: '/tasks',               icon: ClipboardList,   badge: null },
   { name: 'التقارير',    href: '/reports',             icon: TrendingUp,      badge: null },
   { name: 'المالية',     href: '/finance',             icon: Wallet,          badge: null },
+  { name: 'سعر الموقع',  href: '/pricing',             icon: Gem,             badge: null },
 ];
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (v: boolean) => void }) {
@@ -234,13 +235,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               onClick={() => setMobileOpen && setMobileOpen(false)}
-              className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-[60] lg:hidden"
+              className="fixed inset-0 bg-slate-950/60 z-[60] lg:hidden"
             />
             <motion.aside
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 26, stiffness: 250 }}
-              className="fixed top-0 right-0 h-full w-72 z-[70] lg:hidden overflow-hidden glass-card border-l border-white/30 dark:border-slate-800 shadow-2xl"
+              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              className="fixed top-0 right-0 h-full w-72 z-[70] lg:hidden overflow-hidden bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-2xl"
             >
               <SidebarContent mobile />
             </motion.aside>
