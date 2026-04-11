@@ -201,7 +201,7 @@ export default function Dashboard() {
               </div>
               حضور اليوم
             </h2>
-            <Link href="/workers" className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/workers" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
               التفاصيل
             </Link>
           </div>
@@ -226,7 +226,7 @@ export default function Dashboard() {
               </div>
               مهام عاجلة ({highCount})
             </h2>
-            <Link href="/tasks" className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/tasks" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
               كل المهام
             </Link>
           </div>
@@ -283,7 +283,7 @@ export default function Dashboard() {
               </div>
               تنبيهات المخزون
             </h2>
-            <Link href="/inventory" className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/inventory" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
               المخزن
             </Link>
           </div>
@@ -327,7 +327,7 @@ export default function Dashboard() {
               </div>
               إنجاز المهام الأسبوعي
             </h2>
-            <Link href="/reports" className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/reports" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
               التقارير
             </Link>
           </div>

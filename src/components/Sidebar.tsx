@@ -102,6 +102,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
             <Link
               key={item.href}
               href={item.href}
+              prefetch={true}
               onClick={() => mobile && setMobileOpen && setMobileOpen(false)}
               title={collapsed && !mobile ? item.name : undefined}
             >
@@ -241,8 +242,9 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
             />
             <motion.aside
               initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              transition={{ type: 'tween', duration: 0.2, ease: 'easeOut' }}
               className="fixed top-0 right-0 h-full w-72 z-[70] lg:hidden overflow-hidden bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 shadow-2xl"
+              style={{ willChange: 'transform' }}
             >
               <SidebarContent mobile />
             </motion.aside>
