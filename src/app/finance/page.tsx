@@ -89,12 +89,7 @@ export default function FinancePage() {
   const totalNetSalaries = payrollData.reduce((sum, w) => sum + w.netSalary, 0);
   const totalDeductions = payrollData.reduce((sum, w) => sum + w.totalDiscount, 0);
 
-  // حسابات الزكاة (بناءً على المخزون الحالي - لا يتأثر بفلتر الوقت)
-  const totalInventoryValue = useMemo(() => {
-    return items.reduce((sum, item) => sum + (item.stock?.quantity ?? 0) * (item.unit_price ?? 0), 0);
-  }, [items]);
 
-  const zakatValue = totalInventoryValue * 0.025; // 2.5%
 
   const loading = wLoad || iLoad;
 
@@ -110,7 +105,7 @@ export default function FinancePage() {
             الإدارة المالية
           </h1>
           <p className="text-sm text-slate-500 font-bold max-w-lg">
-            إدارة رواتب العمال آلياً ومتابعة قيمة المخزون والزكاة المفروضة.
+            إدارة رواتب العمال آلياً والخصومات.
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
@@ -147,7 +142,7 @@ export default function FinancePage() {
       </div>
 
       {/* ─── بطاقات الإحصاء ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           className="glass-card rounded-3xl p-6 relative overflow-hidden group"
@@ -174,25 +169,7 @@ export default function FinancePage() {
           <p className="text-xs font-bold text-slate-400 mt-2">بسبب الغياب والتأخر</p>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="glass-card rounded-3xl p-6 relative overflow-hidden group border-amber-200 dark:border-amber-800/50 hover:border-amber-300 dark:hover:border-amber-700 transition-colors"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500 opacity-20 rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700" />
-          <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-900/30 text-amber-600 flex items-center justify-center mb-4 shadow-inner">
-            <Coins size={24} />
-          </div>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">زكاة المخزون (2.5%)</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{formatCurrency(zakatValue)}</p>
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black text-slate-400">قيمة المخزون</p>
-              <p className="text-sm font-bold text-slate-500">{formatCurrency(totalInventoryValue)}</p>
-            </div>
-          </div>
-        </motion.div>
+
       </div>
 
       {/* ─── جدول الرواتب ─── */}
