@@ -19,16 +19,20 @@ export function useWorkers() {
       const todayStr = today();
       const { data, error: err } = await supabase
         .from('workers')
-        .select(`*, attendance(*)`)
+        .select(`
+          *,
+          attendance(*),
+          worker_advances(*),
+          worker_payments(*)
+        `)
         .order('name');
-      
-      const { data: advancesData } = await supabase.from('worker_advances').select('*');
       
       if (err) throw err;
 
       const mappedData: Worker[] = ((data as Record<string, unknown>[]) ?? []).map(w => ({
         ...(w as unknown as Worker),
-        advances: (advancesData || []).filter(a => a.worker_id === w.id),
+        advances: (w as any).worker_advances || [],
+        payments: (w as any).worker_payments || [],
         today_status: (w.attendance as { date: string; status: AttendanceStatus }[] | undefined)?.find(a => a.date === todayStr)?.status || null
       }));
 
@@ -103,9 +107,23 @@ export function useWorkers() {
     }
   };
 
+  const addPayment = async (workerId: string, amount: number, month: string): Promise<boolean> => {
+    try {
+      const { error: err } = await supabase
+        .from('worker_payments')
+        .insert({ worker_id: workerId, amount, month });
+      if (err) throw err;
+      await fetchWorkers();
+      return true;
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'فشل تسجيل الدفع');
+      return false;
+    }
+  };
+
   const presentCount = workers.filter(w => w.today_status === 'present').length;
   const absentCount  = workers.filter(w => w.today_status === 'absent').length;
   const lateCount    = workers.filter(w => w.today_status === 'late').length;
 
-  return { workers, loading, error, fetchWorkers, addWorker, updateWorker, deleteWorker, updateAttendance, addAdvance, presentCount, absentCount, lateCount };
+  return { workers, loading, error, fetchWorkers, addWorker, updateWorker, deleteWorker, updateAttendance, addAdvance, addPayment, presentCount, absentCount, lateCount };
 }

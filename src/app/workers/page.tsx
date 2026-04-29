@@ -47,15 +47,6 @@ export default function WorkersPage() {
   const [errors, setErrors] = useState<Partial<Record<keyof WorkerFormData, string>>>({});
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
 
-  // حالة السلفة
-  const [advanceTarget, setAdvanceTarget] = useState<Worker | null>(null);
-  const [advanceAmount, setAdvanceAmount] = useState('');
-  const [advanceNote, setAdvanceNote] = useState('');
-  const [savingAdvance, setSavingAdvance] = useState(false);
-
-  // حالة تصفية الراتب
-  const [payrollTarget, setPayrollTarget] = useState<Worker | null>(null);
-
   const filtered = useMemo(() => {
     let list = workers;
     if (search) {
@@ -120,40 +111,6 @@ export default function WorkersPage() {
       toastError('فشل الحذف');
     }
   };
-
-  const handleAdvance = async () => {
-    if (!advanceTarget) return;
-    const amount = Number(advanceAmount);
-    if (isNaN(amount) || amount <= 0) {
-      toastError('يرجى إدخال مبلغ صحيح للسلفة');
-      return;
-    }
-    setSavingAdvance(true);
-    const ok = await addAdvance(advanceTarget.id, amount, advanceNote);
-    setSavingAdvance(false);
-    if (ok) {
-      success('تم تسجيل السلفة بنجاح ✅');
-      setAdvanceTarget(null);
-      setAdvanceAmount('');
-      setAdvanceNote('');
-    } else {
-      toastError('حدث خطأ أثناء تسجيل السلفة');
-    }
-  };
-
-  const payrollDetails = useMemo(() => {
-    if (!payrollTarget) return null;
-    const w = payrollTarget;
-    const presentDays = w.attendance?.filter(a => a.status === 'present').length || 0;
-    const lateDays = w.attendance?.filter(a => a.status === 'late').length || 0;
-    const totalDiscounts = w.attendance?.reduce((sum, a) => sum + Number(a.discount_amount || 0), 0) || 0;
-    const totalAdvances = w.advances?.reduce((sum, a) => sum + Number(a.amount), 0) || 0;
-    
-    const grossSalary = presentDays * w.daily_rate;
-    const netSalary = grossSalary - totalDiscounts - totalAdvances;
-
-    return { presentDays, lateDays, totalDiscounts, totalAdvances, grossSalary, netSalary };
-  }, [payrollTarget]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -357,22 +314,7 @@ export default function WorkersPage() {
                       </div>
                     </div>
 
-                    {isManager && (
-                      <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-2">
-                        <button
-                          onClick={() => setAdvanceTarget(worker)}
-                          className="flex-1 py-2 rounded-xl bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-xs font-bold hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors flex justify-center items-center gap-1.5"
-                        >
-                          <Wallet size={14} /> سلفة
-                        </button>
-                        <button
-                          onClick={() => setPayrollTarget(worker)}
-                          className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors flex justify-center items-center gap-1.5"
-                        >
-                          <ReceiptText size={14} /> تصفية الراتب
-                        </button>
-                      </div>
-                    )}
+                    {/* أزرار السلفة وتصفية الراتب نُقلت لصفحة المالية */}
                   </div>
                 </div>
               </motion.div>
@@ -462,7 +404,6 @@ export default function WorkersPage() {
         </div>
       </Modal>
 
-      {/* ─── حوار الحذف ─── */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -470,91 +411,6 @@ export default function WorkersPage() {
         loading={deleting}
         message={`هل أنت متأكد من حذف العامل "${deleteTarget?.name}"؟ سيتم حذف جميع سجلات حضوره أيضاً.`}
       />
-
-      {/* ─── نافذة السلفة ─── */}
-      <Modal isOpen={!!advanceTarget} onClose={() => setAdvanceTarget(null)} title="تسجيل سلفة مالية" size="sm">
-        {advanceTarget && (
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
-              <p className="font-bold text-slate-800 dark:text-white mb-1">العامل: {advanceTarget.name}</p>
-              <p className="text-xs text-slate-500">سجل سلفة جديدة لتُخصم من راتبه لاحقاً</p>
-            </div>
-            <Input
-              label="المبلغ المالي (دج)"
-              type="number"
-              min="1"
-              value={advanceAmount}
-              onChange={e => setAdvanceAmount(e.target.value)}
-              placeholder="مثال: 5000"
-              icon={<DollarSign size={16} />}
-              autoFocus
-            />
-            <Input
-              label="ملاحظات (اختياري)"
-              placeholder="سبب السلفة..."
-              value={advanceNote}
-              onChange={e => setAdvanceNote(e.target.value)}
-            />
-            <div className="flex gap-3 pt-2">
-              <Button onClick={handleAdvance} loading={savingAdvance} className="flex-1 !bg-orange-500 hover:!bg-orange-600 !text-white">تأكيد السلفة</Button>
-              <Button variant="secondary" onClick={() => setAdvanceTarget(null)} className="flex-1">إلغاء</Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* ─── نافذة تصفية الراتب ─── */}
-      <Modal isOpen={!!payrollTarget} onClose={() => setPayrollTarget(null)} title="كشف الراتب وتصفية الحساب" size="md">
-        {payrollTarget && payrollDetails && (
-          <div className="space-y-5">
-            <div className="text-center pb-4 border-b border-dashed border-slate-200 dark:border-slate-800">
-              <div className="w-16 h-16 mx-auto bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-3">
-                <ReceiptText size={28} />
-              </div>
-              <h3 className="text-xl font-black text-slate-800 dark:text-white">{payrollTarget.name}</h3>
-              <p className="text-sm text-slate-500">كشف الحساب التراكمي</p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">أيام الحضور</span>
-                <span className="font-black text-emerald-600">{payrollDetails.presentDays} يوم</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">الأجر اليومي</span>
-                <span className="font-black">{formatCurrency(payrollTarget.daily_rate)}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">إجمالي الأجر المستحق</span>
-                <span className="font-black text-emerald-600">+{formatCurrency(payrollDetails.grossSalary)}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
-                <span className="text-sm font-bold text-rose-600 dark:text-rose-400">خصومات والتأخير</span>
-                <span className="font-black text-rose-600">-{formatCurrency(payrollDetails.totalDiscounts)}</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
-                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">سلفيات مسحوبة سابقاً</span>
-                <span className="font-black text-orange-600">-{formatCurrency(payrollDetails.totalAdvances)}</span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-gradient-to-l from-violet-600 to-indigo-600 rounded-2xl text-white shadow-xl shadow-violet-500/20">
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="text-xs font-bold text-white/70 mb-1">الصافي للدفع</p>
-                  <p className="text-3xl font-black">{formatCurrency(payrollDetails.netSalary)}</p>
-                </div>
-                <Wallet size={32} className="opacity-50" />
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button onClick={() => { success('تم تصفية الراتب بنجاح! (يجب تصفير البيانات برمجياً إذا أردت دورة جديدة)'); setPayrollTarget(null); }} className="flex-1">دفع وإغلاق السجل</Button>
-              <Button variant="secondary" onClick={() => setPayrollTarget(null)} className="flex-1">إلغاء</Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

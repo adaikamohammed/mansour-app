@@ -170,19 +170,53 @@ export default function InventoryPage() {
               تنبيه: {lowStockItems.length} أصناف بمخزون منخفض
             </h3>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {lowStockItems.map(item => (
-              <div key={item.id} className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-amber-100 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/50">
-                <span className="text-amber-800 dark:text-amber-300 text-xs font-black">
-                  {item.sub_type} — {item.stock?.quantity ?? 0} {item.unit}
-                </span>
-                {forecasts[item.id] !== undefined && (
-                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
-                    ⚠️ استهلاك ذكي: سينفد خلال {forecasts[item.id] === 0 ? 'اليوم' : `${forecasts[item.id]} أيام`}
-                  </span>
-                )}
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {lowStockItems.map(item => {
+              const qty = item.stock?.quantity ?? 0;
+              const minLvl = item.min_stock_level ?? 50;
+              const ratio = Math.min(1, Math.max(0, qty / minLvl));
+              const r = 16;
+              const circ = 2 * Math.PI * r;
+              const strokeDashoffset = circ - ratio * circ;
+
+              return (
+                <div key={item.id} className="flex items-center gap-4 px-4 py-3 rounded-2xl bg-white dark:bg-slate-800 shadow-sm border border-amber-100 dark:border-amber-900/30 group hover:-translate-y-0.5 transition-transform">
+                  <div className="relative w-12 h-12 shrink-0">
+                    <svg viewBox="0 0 40 40" className="w-full h-full -rotate-90">
+                      <circle cx="20" cy="20" r={r} fill="none" stroke="currentColor" strokeWidth="4" className="text-slate-100 dark:text-slate-700" />
+                      <circle 
+                        cx="20" cy="20" r={r} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="4" 
+                        className={ratio > 0.5 ? 'text-amber-500' : 'text-rose-500'} 
+                        strokeDasharray={circ}
+                        strokeDashoffset={strokeDashoffset}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-[10px] font-black text-slate-700 dark:text-slate-200">
+                        {Math.round(ratio * 100)}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-black text-slate-800 dark:text-white truncate">{item.sub_type}</p>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <span className="text-xs font-bold text-slate-500">{qty} / {minLvl} {item.unit}</span>
+                    </div>
+                    {forecasts[item.id] !== undefined && (
+                      <div className="mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded-md">
+                          ⚡ يكفي لـ {forecasts[item.id] === 0 ? 'أقل من يوم' : `${forecasts[item.id]} يوم`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </motion.div>
       )}

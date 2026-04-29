@@ -75,7 +75,7 @@ export default function Topbar() {
                 initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                className="absolute left-full -translate-x-12 sm:translate-x-0 sm:left-auto sm:right-0 top-full mt-3 w-80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl rounded-3xl p-4 z-50 overflow-hidden"
+                className="absolute left-0 top-full mt-3 w-80 max-w-[calc(100vw-2rem)] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 shadow-2xl rounded-3xl p-4 z-50 overflow-hidden"
               >
                 <div className="flex justify-between items-center mb-3 px-1">
                   <h3 className="font-black text-slate-800 dark:text-white">الإشعارات</h3>
@@ -97,8 +97,8 @@ export default function Topbar() {
                           <Package size={14} />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 dark:text-white text-xs mb-1">{item.sub_type}</p>
-                          <p className="text-[10px] text-amber-600 font-bold">المتبقي: {item.stock?.quantity ?? 0} {item.unit} فقط</p>
+                          <p className="font-bold text-slate-800 dark:text-white text-sm mb-1">{item.sub_type}</p>
+                          <p className="text-xs text-amber-600 font-bold">المتبقي: {item.stock?.quantity ?? 0} {item.unit} فقط</p>
                         </div>
                       </div>
                     ))}

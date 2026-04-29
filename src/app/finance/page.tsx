@@ -12,6 +12,11 @@ import Badge from '@/components/ui/Badge';
 import { formatCurrency, formatNumber, getInitials } from '@/lib/utils';
 import { Select } from '@/components/ui/Input';
 import { useAuth, canEdit } from '@/lib/auth';
+import { useToast } from '@/components/ui/Toast';
+import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import type { Worker } from '@/lib/types';
 
 // دالة لتوليد أيام الشهر بالكامل بناءً على (YYYY-MM)
 function getMonthRange(yearMonth: string) {
@@ -24,13 +29,24 @@ function getMonthRange(yearMonth: string) {
 }
 
 export default function FinancePage() {
-  const { workers, loading: wLoad } = useWorkers();
+  const { workers, loading: wLoad, addAdvance, addPayment } = useWorkers();
   const { items, loading: iLoad } = useInventory();
   const { role } = useAuth();
   const isManager = canEdit(role);
+  const { success, error: toastError } = useToast();
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().substring(0, 7));
   const [absentPenalty, setAbsentPenalty] = useState(1);
   const [latePenalty, setLatePenalty] = useState(0.25);
+
+  // حالة السلفة
+  const [advanceTarget, setAdvanceTarget] = useState<any>(null);
+  const [advanceAmount, setAdvanceAmount] = useState('');
+  const [advanceNote, setAdvanceNote] = useState('');
+  const [savingAdvance, setSavingAdvance] = useState(false);
+
+  // حالة تصفية الراتب
+  const [payrollTarget, setPayrollTarget] = useState<any>(null);
 
   // حسابات الرواتب
   const payrollData = useMemo(() => {
@@ -47,49 +63,87 @@ export default function FinancePage() {
       const joinDate = new Date(w.join_date);
       joinDate.setHours(0,0,0,0);
       
-      // بداية الحساب للعامل في هذا الشهر هي (بداية الشهر) أو (تاريخ انضمامه) أيهما أحدث
-      const effectiveStart = new Date(Math.max(monthStart.getTime(), joinDate.getTime()));
-      effectiveStart.setHours(0,0,0,0);
-
-      let expectedDays = 0;
-      if (calculationEnd >= effectiveStart) {
-         const diffTime = calculationEnd.getTime() - effectiveStart.getTime();
-         expectedDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      }
-
       // تصفية السجلات المسجلة بداخل الشهر المختار
       const validAtts = attendances.filter((r: any) => {
         const d = new Date(r.date);
         d.setHours(0,0,0,0);
-        return d >= effectiveStart && d <= calculationEnd;
+        return d >= monthStart && d <= monthEnd;
       });
       
       const presentDays = validAtts.filter((r: any) => r.status === 'present').length;
       const lateDays = validAtts.filter((r: any) => r.status === 'late').length;
-      const recordedAbsent = validAtts.filter((r: any) => r.status === 'absent').length;
+      const absentDays = validAtts.filter((r: any) => r.status === 'absent').length;
       
-      // الأيام الغائبة = المسجلة غياب + أيام مفقودة في السجل ضمن الفترة المتوقعة
-      const unrecordedDays = Math.max(0, expectedDays - (presentDays + lateDays + recordedAbsent));
-      const absentDays = recordedAbsent + unrecordedDays;
+      // تصفية السلفيات لهذا الشهر
+      const workerAdvances = Array.isArray((w as any).advances) ? (w as any).advances : [];
+      const validAdvances = workerAdvances.filter((a: any) => {
+        const d = new Date(a.date);
+        d.setHours(0,0,0,0);
+        return d >= monthStart && d <= monthEnd;
+      });
+      const totalAdvances = validAdvances.reduce((sum: number, a: any) => sum + Number(a.amount), 0);
 
-      const basicSalary = expectedDays * w.daily_rate;
-      const absentDiscount = absentDays * w.daily_rate * absentPenalty;
+      // الراتب الأساسي هو أيام الحضور + أيام التأخر (التي سيُخصم منها لاحقاً)
+      const basicSalary = (presentDays + lateDays) * w.daily_rate;
+      
+      const absentDiscount = absentDays * w.daily_rate * absentPenalty; // خصم فقط إذا سُجل غائب صراحة
       const lateDiscount = lateDays * w.daily_rate * latePenalty;
       const totalDiscount = absentDiscount + lateDiscount;
-      const netSalary = Math.max(0, basicSalary - totalDiscount);
+      
+      const netSalary = Math.max(0, basicSalary - totalDiscount - totalAdvances);
+
+      // تصفية المدفوعات المسجلة مسبقاً في هذا الشهر
+      const workerPayments = Array.isArray((w as any).payments) ? (w as any).payments : [];
+      const validPayments = workerPayments.filter((p: any) => p.month === selectedMonth);
+      const totalPaid = validPayments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      
+      const netDue = Math.max(0, netSalary - totalPaid);
 
       return {
         ...w,
-        totalDays: expectedDays, presentDays, absentDays, lateDays,
-        basicSalary, totalDiscount, netSalary
+        presentDays, absentDays, lateDays,
+        totalAdvances, basicSalary, totalDiscount, netSalary, totalPaid, netDue
       };
     });
   }, [workers, selectedMonth, absentPenalty, latePenalty]);
 
-  const totalNetSalaries = payrollData.reduce((sum, w) => sum + w.netSalary, 0);
+  const totalNetSalaries = payrollData.reduce((sum, w) => sum + w.netDue, 0);
   const totalDeductions = payrollData.reduce((sum, w) => sum + w.totalDiscount, 0);
 
+  const handleAdvance = async () => {
+    if (!advanceTarget) return;
+    const amount = Number(advanceAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toastError('يرجى إدخال مبلغ صحيح للسلفة');
+      return;
+    }
+    setSavingAdvance(true);
+    const ok = await addAdvance(advanceTarget.id, amount, advanceNote);
+    setSavingAdvance(false);
+    if (ok) {
+      success('تم تسجيل السلفة بنجاح ✅');
+      setAdvanceTarget(null);
+      setAdvanceAmount('');
+      setAdvanceNote('');
+    } else {
+      toastError('حدث خطأ أثناء تسجيل السلفة');
+    }
+  };
 
+  const handleSettle = async () => {
+    if (!payrollTarget) return;
+    if (payrollTarget.netDue <= 0) {
+      toastError('لا يوجد مبلغ مستحق للدفع');
+      return;
+    }
+    const ok = await addPayment(payrollTarget.id, payrollTarget.netDue, selectedMonth);
+    if (ok) {
+      success('تم الدفع وتصفية الحساب بنجاح ✅');
+      setPayrollTarget(null);
+    } else {
+      toastError('حدث خطأ أثناء الدفع');
+    }
+  };
 
   const loading = wLoad || iLoad;
 
@@ -191,10 +245,13 @@ export default function FinancePage() {
               <tr>
                 <th>العامل</th>
                 <th className="text-center">الأجر اليومي</th>
-                <th className="text-center">أيام العمل</th>
+                <th className="text-center">أيام الحضور</th>
                 <th className="text-center">غياب / تأخر</th>
-                <th className="text-center">الخصم</th>
+                <th className="text-center">الخصومات</th>
+                <th className="text-center">السلفيات</th>
+                <th className="text-center">المدفوع</th>
                 <th className="text-center">الصافي المستحق</th>
+                {isManager && <th className="text-center">إجراءات</th>}
               </tr>
             </thead>
             <tbody>
@@ -237,9 +294,7 @@ export default function FinancePage() {
                         {worker.daily_rate} دج
                       </td>
                       <td className="text-center">
-                        <span className="font-black text-emerald-600">{worker.presentDays}</span>
-                        <span className="text-xs text-slate-400 mx-1">/</span>
-                        <span className="text-xs font-bold text-slate-400">{worker.totalDays}</span>
+                        <span className="font-black text-emerald-600">{worker.presentDays + worker.lateDays}</span>
                       </td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2 text-xs font-bold">
@@ -265,10 +320,43 @@ export default function FinancePage() {
                         )}
                       </td>
                       <td className="text-center">
-                        <span className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 font-black rounded-lg">
-                          {formatCurrency(worker.netSalary)}
+                        {worker.totalAdvances > 0 ? (
+                          <span className="font-black text-amber-500">− {formatCurrency(worker.totalAdvances)}</span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        {worker.totalPaid > 0 ? (
+                          <span className="font-black text-emerald-600">{formatCurrency(worker.totalPaid)}</span>
+                        ) : (
+                          <span className="text-slate-300 dark:text-slate-600">—</span>
+                        )}
+                      </td>
+                      <td className="text-center">
+                        <span className={`px-3 py-1.5 font-black rounded-lg ${worker.netDue > 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                          {formatCurrency(worker.netDue)}
                         </span>
                       </td>
+                      {isManager && (
+                        <td className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => setAdvanceTarget(worker)}
+                              className="px-2 py-1.5 rounded-lg bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 text-[11px] font-bold hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors"
+                            >
+                              سلفة
+                            </button>
+                            <button
+                              onClick={() => setPayrollTarget(worker)}
+                              disabled={worker.netDue === 0}
+                              className="px-2 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              تصفية
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </motion.tr>
                   ))}
                 </AnimatePresence>
@@ -281,6 +369,97 @@ export default function FinancePage() {
           </div>
         </div>
       </motion.section>
+
+      {/* ─── نافذة السلفة ─── */}
+      <Modal isOpen={!!advanceTarget} onClose={() => setAdvanceTarget(null)} title="تسجيل سلفة مالية" size="sm">
+        {advanceTarget && (
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl">
+              <p className="font-bold text-slate-800 dark:text-white mb-1">العامل: {advanceTarget.name}</p>
+              <p className="text-xs text-slate-500">سجل سلفة جديدة لتُخصم من راتبه لاحقاً</p>
+            </div>
+            <Input
+              label="المبلغ المالي (دج)"
+              type="number"
+              min="1"
+              value={advanceAmount}
+              onChange={e => setAdvanceAmount(e.target.value)}
+              placeholder="مثال: 5000"
+              icon={<Coins size={16} />}
+              autoFocus
+            />
+            <Input
+              label="ملاحظات (اختياري)"
+              placeholder="سبب السلفة..."
+              value={advanceNote}
+              onChange={e => setAdvanceNote(e.target.value)}
+            />
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleAdvance} loading={savingAdvance} className="flex-1 !bg-orange-500 hover:!bg-orange-600 !text-white">تأكيد السلفة</Button>
+              <Button variant="secondary" onClick={() => setAdvanceTarget(null)} className="flex-1">إلغاء</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* ─── نافذة تصفية الراتب ─── */}
+      <Modal isOpen={!!payrollTarget} onClose={() => setPayrollTarget(null)} title="كشف الراتب وتصفية الحساب" size="md">
+        {payrollTarget && (
+          <div className="space-y-5">
+            <div className="text-center pb-4 border-b border-dashed border-slate-200 dark:border-slate-800">
+              <div className="w-16 h-16 mx-auto bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-full flex items-center justify-center mb-3">
+                <FileText size={28} />
+              </div>
+              <h3 className="text-xl font-black text-slate-800 dark:text-white">{payrollTarget.name}</h3>
+              <p className="text-sm text-slate-500">كشف الحساب لشهر {selectedMonth}</p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">أيام الحضور</span>
+                <span className="font-black text-emerald-600">{payrollTarget.presentDays + payrollTarget.lateDays} يوم</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                <span className="text-sm font-bold text-slate-600 dark:text-slate-300">الأجر اليومي</span>
+                <span className="font-black">{formatCurrency(payrollTarget.daily_rate)}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">إجمالي الأجر المستحق</span>
+                <span className="font-black text-indigo-600">+{formatCurrency(payrollTarget.basicSalary)}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
+                <span className="text-sm font-bold text-rose-600 dark:text-rose-400">خصومات والتأخير</span>
+                <span className="font-black text-rose-600">-{formatCurrency(payrollTarget.totalDiscount)}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-xl">
+                <span className="text-sm font-bold text-orange-600 dark:text-orange-400">سلفيات الشهر</span>
+                <span className="font-black text-orange-600">-{formatCurrency(payrollTarget.totalAdvances)}</span>
+              </div>
+              {payrollTarget.totalPaid > 0 && (
+                <div className="flex justify-between items-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                  <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">تم دفعها مسبقاً</span>
+                  <span className="font-black text-emerald-600">-{formatCurrency(payrollTarget.totalPaid)}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-gradient-to-l from-violet-600 to-indigo-600 rounded-2xl text-white shadow-xl shadow-violet-500/20">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-xs font-bold text-white/70 mb-1">المتبقي للدفع الآن</p>
+                  <p className="text-3xl font-black">{formatCurrency(payrollTarget.netDue)}</p>
+                </div>
+                <Wallet size={32} className="opacity-50" />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button onClick={handleSettle} className="flex-1">تأكيد الدفع</Button>
+              <Button variant="secondary" onClick={() => setPayrollTarget(null)} className="flex-1">إلغاء</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

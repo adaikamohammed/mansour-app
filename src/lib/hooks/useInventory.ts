@@ -23,7 +23,10 @@ export function useInventory() {
         .select('*, inventory_stock(*)')
         .order('main_type');
       if (err) throw err;
-      const itemsData = data ?? [];
+      const itemsData = (data ?? []).map((item: any) => ({
+        ...item,
+        stock: Array.isArray(item.inventory_stock) ? item.inventory_stock[0] : item.inventory_stock
+      }));
       setItems(itemsData);
 
       // التنبؤ الذكي بالاستهلاك (آخر 14 يوم)
@@ -124,12 +127,25 @@ export function useInventory() {
       const newQty = type === 'in' ? currentQty + quantity : currentQty - quantity;
       if (newQty < 0) throw new Error('الكمية الحالية لا تكفي لإتمام عملية الاستخراج');
 
-      // Update stock
-      const { error: err1 } = await supabase
+      // Update or Insert stock if missing
+      const { data: existingStock } = await supabase
         .from('inventory_stock')
-        .update({ quantity: newQty, updated_at: new Date().toISOString() })
-        .eq('category_id', categoryId);
-      if (err1) throw err1;
+        .select('id')
+        .eq('category_id', categoryId)
+        .maybeSingle();
+
+      if (existingStock) {
+        const { error: err1 } = await supabase
+          .from('inventory_stock')
+          .update({ quantity: newQty, updated_at: new Date().toISOString() })
+          .eq('category_id', categoryId);
+        if (err1) throw err1;
+      } else {
+        const { error: err1 } = await supabase
+          .from('inventory_stock')
+          .insert({ category_id: categoryId, quantity: newQty });
+        if (err1) throw err1;
+      }
 
       // Insert transaction history
       const { error: err2 } = await supabase
@@ -146,8 +162,9 @@ export function useInventory() {
 
       await fetchItems();
       return true;
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل تسجيل العملية');
+    } catch (e: any) {
+      console.error('recordTransaction error details:', JSON.stringify(e, null, 2), e);
+      setError(e?.message || 'فشل تسجيل العملية');
       return false;
     }
   };

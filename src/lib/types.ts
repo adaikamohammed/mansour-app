@@ -15,6 +15,15 @@ export interface WorkerAdvance {
   created_at: string;
 }
 
+export interface WorkerPayment {
+  id: string;
+  worker_id: string;
+  amount: number;
+  month: string;
+  date: string;
+  created_at: string;
+}
+
 export interface Worker {
   id: string;
   name: string;
@@ -26,6 +35,7 @@ export interface Worker {
   photo_url?: string;
   attendance?: Attendance[];
   advances?: WorkerAdvance[];
+  payments?: WorkerPayment[];
   today_status?: AttendanceStatus | null;
 }
 
