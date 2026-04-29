@@ -6,16 +6,26 @@ export type AttendanceStatus = 'present' | 'absent' | 'late';
 export type InventoryMainType = 'carton' | 'bottle' | 'cap' | 'material';
 export type TaskPriority = 'high' | 'medium' | 'low';
 
+export interface WorkerAdvance {
+  id: string;
+  worker_id: string;
+  amount: number;
+  date: string;
+  note?: string;
+  created_at: string;
+}
+
 export interface Worker {
   id: string;
   name: string;
-  phone: string | null;
-  address: string | null;
+  phone?: string;
+  address?: string;
   join_date: string;
-  photo_url: string | null;
   daily_rate: number;
-  created_at: string;
-  // حقل محسوب (join مع attendance)
+  discount_rate: number;
+  photo_url?: string;
+  attendance?: Attendance[];
+  advances?: WorkerAdvance[];
   today_status?: AttendanceStatus | null;
 }
 
@@ -37,7 +47,7 @@ export interface InventoryCategory {
   main_type: InventoryMainType;
   sub_type: string;
   unit: string;
-  unit_price: number;
+  min_stock_level?: number;
   created_at: string;
   // join مع inventory_stock
   stock?: InventoryStock;
@@ -110,8 +120,8 @@ export type InventoryFormData = {
   main_type: InventoryMainType;
   sub_type: string;
   unit: string;
-  unit_price: number;
   initial_quantity: number;
+  min_stock_level: number;
 };
 
 export type TaskFormData = {

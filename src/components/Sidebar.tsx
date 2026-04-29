@@ -5,29 +5,30 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Package, ClipboardList, TrendingUp, Wallet,
-  Menu, X, ChevronRight, Sun, Moon, BoxesIcon, CalendarCheck, Gem,
+  Menu, X, ChevronRight, Sun, Moon, BoxesIcon, CalendarCheck,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
+import { useInventory } from '@/lib/hooks/useInventory';
 import { LogOut } from 'lucide-react';
 
 const navItems = [
   { name: 'لوحة التحكم', href: '/',                   icon: LayoutDashboard, badge: null },
   { name: 'العمال',      href: '/workers',             icon: Users,           badge: null },
   { name: 'الحضور',      href: '/workers/attendance',  icon: CalendarCheck,   badge: null },
-  { name: 'المخزن',      href: '/inventory',           icon: Package,         badge: '3'  },
+  { name: 'المخزن',      href: '/inventory',           icon: Package,         badge: null },
   { name: 'المهام',      href: '/tasks',               icon: ClipboardList,   badge: null },
   { name: 'التقارير',    href: '/reports',             icon: TrendingUp,      badge: null },
   { name: 'المالية',     href: '/finance',             icon: Wallet,          badge: null },
-  { name: 'سعر الموقع',  href: '/pricing',             icon: Gem,             badge: null },
 ];
 
 export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: boolean; setMobileOpen?: (v: boolean) => void }) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const { role, signOut } = useAuth();
+  const { lowStockItems } = useInventory();
   const [collapsed, setCollapsed] = useState(false);
 
   // استعادة حالة الطي من localStorage
@@ -98,6 +99,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
           const isActive = pathname === item.href || 
             (item.href !== '/' && pathname.startsWith(item.href + '/') && 
              !navItems.some(n => n.href !== item.href && pathname.startsWith(n.href)));
+          const dynamicBadge = item.href === '/inventory' && lowStockItems.length > 0 ? String(lowStockItems.length) : item.badge;
           return (
             <Link
               key={item.href}
@@ -139,14 +141,14 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 )}
 
                 {/* Badge */}
-                {item.badge && (!collapsed || mobile) && (
+                {dynamicBadge && (!collapsed || mobile) && (
                   <span className={cn(
                     'mr-auto text-[10px] font-black px-2 py-0.5 rounded-full',
                     isActive
                       ? 'bg-white/20 text-white'
                       : 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
                   )}>
-                    {item.badge}
+                    {dynamicBadge}
                   </span>
                 )}
 

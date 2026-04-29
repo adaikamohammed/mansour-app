@@ -6,7 +6,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus, Search, Package, Box, FlaskConical, CircleDot,
-  Droplets, AlertTriangle, Edit2, Trash2, Minus, X, History,
+  Droplets, AlertTriangle, Edit2, Trash2, X, History, Minus,
   ArrowDownToLine, ArrowUpFromLine
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -35,14 +35,14 @@ const CATEGORY_COLORS: Record<InventoryMainType, { color: string; bg: string; ri
   material: { color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'ring-emerald-200 dark:ring-emerald-800', border: 'border-emerald-500' },
 };
 
-const emptyForm: InventoryFormData = { main_type: 'carton', sub_type: '', unit: 'قطعة', unit_price: 0, initial_quantity: 0 };
+const emptyForm: InventoryFormData = { main_type: 'carton', sub_type: '', unit: 'قطعة', initial_quantity: 0, min_stock_level: 50 };
 
 export default function InventoryPage() {
   const router = useRouter();
-  const { items, loading, error: inventoryError, addItem, editItem, updateQuantity, recordTransaction, deleteItem, lowStockItems } = useInventory();
+  const { items, loading, error: inventoryError, addItem, editItem, recordTransaction, deleteItem, lowStockItems, forecasts } = useInventory();
   const { role } = useAuth();
   const isManager = canEdit(role);
-  const { success, error: toastError, warning } = useToast();
+  const { success, error: toastError } = useToast();
 
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -81,8 +81,7 @@ export default function InventoryPage() {
     if (!validate()) return;
     setSaving(true);
     let ok = false;
-    // فرض السعر صفر دائمًا لأن المخزن مخصص للاستهلاك فقط وليس للبيع
-    const formToSave = { ...form, unit_price: 0 };
+    const formToSave = { ...form };
     if (editTargetId) {
       ok = await editItem(editTargetId, formToSave);
     } else {
@@ -103,8 +102,8 @@ export default function InventoryPage() {
       main_type: item.main_type,
       sub_type: item.sub_type,
       unit: item.unit,
-      unit_price: 0, // تجاهل السعر
-      initial_quantity: item.stock?.quantity ?? 0
+      initial_quantity: item.stock?.quantity ?? 0,
+      min_stock_level: item.min_stock_level ?? 50
     });
     setShowAddModal(true);
   };
@@ -173,9 +172,16 @@ export default function InventoryPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {lowStockItems.map(item => (
-              <span key={item.id} className="px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-black">
-                {item.sub_type} — {item.stock?.quantity ?? 0} {item.unit}
-              </span>
+              <div key={item.id} className="flex flex-col gap-1 px-3 py-2 rounded-xl bg-amber-100 dark:bg-amber-900/30 border border-amber-200/50 dark:border-amber-800/50">
+                <span className="text-amber-800 dark:text-amber-300 text-xs font-black">
+                  {item.sub_type} — {item.stock?.quantity ?? 0} {item.unit}
+                </span>
+                {forecasts[item.id] !== undefined && (
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                    ⚠️ استهلاك ذكي: سينفد خلال {forecasts[item.id] === 0 ? 'اليوم' : `${forecasts[item.id]} أيام`}
+                  </span>
+                )}
+              </div>
             ))}
           </div>
         </motion.div>
@@ -267,64 +273,66 @@ export default function InventoryPage() {
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800 hover:shadow-md transition-all flex flex-col sm:flex-row gap-4 sm:items-center justify-between group relative overflow-hidden"
+                            className="p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800 hover:shadow-md transition-all flex flex-col gap-4 group relative overflow-hidden"
                           >
                             {stockStatus === 'low' && (
                               <div className="absolute top-0 right-0 w-1.5 h-full bg-rose-500" title="مخزون منخفض" />
                             )}
                             
-                            <div className="flex-1 min-w-0 pr-1">
-                              <p className="font-black text-slate-800 dark:text-white text-sm truncate" title={item.sub_type}>{item.sub_type}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
-                                  الوحدة: {item.unit}
-                                </span>
+                            <div className="flex items-start justify-between w-full">
+                              <div className="flex-1 min-w-0 pr-2">
+                                <p className="font-black text-slate-800 dark:text-white text-base truncate" title={item.sub_type}>{item.sub_type}</p>
+                                <div className="flex items-center gap-2 mt-1.5">
+                                  <span className="text-xs font-bold text-slate-500 bg-slate-100 dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    الوحدة: {item.unit}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-
-                            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                              {/* متحكمات الكمية */}
-                              <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-900/50 p-1 rounded-xl border border-slate-200 dark:border-slate-700/60">
-                                {isManager && (
-                                  <button
-                                    onClick={() => openTransactionModal(item, 'out')}
-                                    className="w-9 h-9 rounded-lg text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/30 flex items-center justify-center transition-all bg-transparent"
-                                    title="استخراج كمية للمشروع"
-                                  >
-                                    <ArrowUpFromLine size={16} />
-                                  </button>
-                                )}
-                                
-                                <button
-                                  onClick={() => isManager && openTransactionModal(item, 'in')}
-                                  className={`w-16 text-center font-black text-xl ${isManager ? 'cursor-pointer hover:text-violet-600 dark:hover:text-violet-400' : 'cursor-default'} text-slate-900 dark:text-white`}
-                                  title="الرصيد المتاح"
-                                >
-                                  {formatNumber(qty)}
-                                </button>
-                                
-                                {isManager && (
-                                  <button
-                                    onClick={() => openTransactionModal(item, 'in')}
-                                    className="w-9 h-9 rounded-lg text-emerald-500 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 flex items-center justify-center transition-all bg-transparent"
-                                    title="إدخال كمية للمخزن"
-                                  >
-                                    <ArrowDownToLine size={16} />
-                                  </button>
-                                )}
-                              </div>
-
-                              {/* أزرار الإجراءات */}
+                              
+                              {/* أزرار الإجراءات - ظاهرة دائما */}
                               {isManager && (
-                                <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                  <button onClick={() => openEditModal(item)} className="p-2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20" title="تعديل تفاصيل الصنف">
-                                    <Edit2 size={14} />
+                                <div className="flex gap-1.5 shrink-0">
+                                  <button onClick={() => openEditModal(item)} className="p-2 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:text-blue-400 dark:hover:bg-blue-900/30 transition-colors bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800" title="تعديل تفاصيل الصنف">
+                                    <Edit2 size={16} />
                                   </button>
-                                  <button onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }} className="p-2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20" title="حذف الصنف">
-                                    <Trash2 size={14} />
+                                  <button onClick={() => { setDeleteTarget(item.id); setDeleteTargetName(item.sub_type); }} className="p-2 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:text-rose-400 dark:hover:bg-rose-900/30 transition-colors bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800" title="حذف الصنف">
+                                    <Trash2 size={16} />
                                   </button>
                                 </div>
                               )}
+                            </div>
+
+                            {/* متحكمات الكمية بشكل بارز للموبايل والشاشات */}
+                            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900/40 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700/60 mt-auto">
+                              {isManager ? (
+                                <button
+                                  onClick={() => openTransactionModal(item, 'out')}
+                                  className="flex-1 h-11 sm:h-10 rounded-lg text-rose-600 bg-rose-100/50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 flex items-center justify-center transition-all font-bold gap-1.5 active:scale-95"
+                                  title="سحب (استخراج)"
+                                >
+                                  <Minus size={18} strokeWidth={2.5} />
+                                  <span className="text-sm">سحب</span>
+                                </button>
+                              ) : <div className="flex-1" />}
+                              
+                              <button
+                                onClick={() => isManager && openTransactionModal(item, 'in')}
+                                className={`flex-[1.2] text-center font-black text-2xl sm:text-xl ${isManager ? 'cursor-pointer hover:text-violet-600 dark:hover:text-violet-400' : 'cursor-default'} text-slate-900 dark:text-white truncate px-2`}
+                                title="الرصيد المتاح"
+                              >
+                                {formatNumber(qty)}
+                              </button>
+                              
+                              {isManager ? (
+                                <button
+                                  onClick={() => openTransactionModal(item, 'in')}
+                                  className="flex-1 h-11 sm:h-10 rounded-lg text-emerald-600 bg-emerald-100/50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 flex items-center justify-center transition-all font-bold gap-1.5 active:scale-95"
+                                  title="إضافة"
+                                >
+                                  <Plus size={18} strokeWidth={2.5} />
+                                  <span className="text-sm">إضافة</span>
+                                </button>
+                              ) : <div className="flex-1" />}
                             </div>
                           </motion.div>
                         );
@@ -377,6 +385,13 @@ export default function InventoryPage() {
                  onChange={e => f('initial_quantity', Number(e.target.value))}
                />
             </div>
+            <Input
+              label="حد التنبيه (أدنى كمية)"
+              type="number"
+              min="0"
+              value={String(form.min_stock_level)}
+              onChange={e => f('min_stock_level', Number(e.target.value))}
+            />
           </div>
 
           <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">

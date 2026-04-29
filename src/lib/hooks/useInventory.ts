@@ -3,13 +3,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { InventoryCategory, InventoryFormData } from '@/lib/types';
-import { today } from '@/lib/utils';
+
 
 
 
 export function useInventory() {
   const [items, setItems] = useState<InventoryCategory[]>([]);
-  const [sales, setSales] = useState<number>(0);
+  const [forecasts, setForecasts] = useState<Record<string, number>>({});
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +23,38 @@ export function useInventory() {
         .select('*, inventory_stock(*)')
         .order('main_type');
       if (err) throw err;
-      setItems(data ?? []);
+      const itemsData = data ?? [];
+      setItems(itemsData);
+
+      // التنبؤ الذكي بالاستهلاك (آخر 14 يوم)
+      const fourteenDaysAgo = new Date();
+      fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+      const { data: txData, error: txErr } = await supabase
+        .from('inventory_transactions')
+        .select('category_id, quantity')
+        .eq('type', 'out')
+        .gte('created_at', fourteenDaysAgo.toISOString());
+        
+      if (!txErr && txData) {
+        const consumption: Record<string, number> = {};
+        txData.forEach(tx => {
+          consumption[tx.category_id] = (consumption[tx.category_id] || 0) + Number(tx.quantity);
+        });
+        
+        const newForecasts: Record<string, number> = {};
+        itemsData.forEach((item: any) => {
+          const totalConsumed = consumption[item.id] || 0;
+          const dailyAvg = totalConsumed / 14;
+          const currentStock = item.stock?.quantity ?? 0;
+          if (dailyAvg > 0 && currentStock > 0) {
+            newForecasts[item.id] = Math.ceil(currentStock / dailyAvg); // الأيام المتبقية
+          } else if (currentStock <= 0) {
+            newForecasts[item.id] = 0;
+          }
+        });
+        setForecasts(newForecasts);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'فشل تحميل المخزون');
     } finally {
@@ -36,7 +68,7 @@ export function useInventory() {
     try {
       const { data: cat, error: err1 } = await supabase
         .from('inventory_categories')
-        .insert({ main_type: data.main_type, sub_type: data.sub_type, unit: data.unit, unit_price: data.unit_price })
+        .insert({ main_type: data.main_type, sub_type: data.sub_type, unit: data.unit, min_stock_level: data.min_stock_level || 50 })
         .select()
         .single();
       if (err1) throw err1;
@@ -54,7 +86,17 @@ export function useInventory() {
 
   const updateCategory = async (id: string, updates: Partial<InventoryFormData>): Promise<boolean> => {
     try {
-      // TODO: Supabase logic for actual editing
+      const { error: err } = await supabase
+        .from('inventory_categories')
+        .update({
+          main_type: updates.main_type,
+          sub_type: updates.sub_type,
+          unit: updates.unit,
+          min_stock_level: updates.min_stock_level
+        })
+        .eq('id', id);
+      if (err) throw err;
+      await fetchItems();
       return true;
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'فشل تعديل الصنف');
@@ -123,7 +165,7 @@ export function useInventory() {
   };
 
   const totalItems = items.reduce((sum, i) => sum + (i.stock?.quantity ?? 0), 0);
-  const lowStockItems = items.filter(i => (i.stock?.quantity ?? 0) <= 50);
+  const lowStockItems = items.filter(i => (i.stock?.quantity ?? 0) <= (i.min_stock_level ?? 50));
 
   return { 
     items, 
@@ -140,6 +182,7 @@ export function useInventory() {
     editItem: updateCategory,
     deleteItem: deleteCategory,
     totalItems, 
-    lowStockItems 
+    lowStockItems,
+    forecasts
   };
 }

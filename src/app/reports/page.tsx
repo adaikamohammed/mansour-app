@@ -11,6 +11,8 @@ import { useTasks } from '@/lib/hooks/useTasks';
 import { useInventory } from '@/lib/hooks/useInventory';
 import Badge from '@/components/ui/Badge';
 import { formatNumber, calcAttendanceRate, getInitials } from '@/lib/utils';
+import { MAIN_TYPE_LABELS } from '@/lib/types';
+import * as XLSX from 'xlsx';
 
 // ─── رسم بياني شريطي ───
 function BarChart({
@@ -182,8 +184,45 @@ export default function ReportsPage() {
   const { items, totalItems, lowStockItems, loading: iLoad } = useInventory();
   const [period, setPeriod]   = useState<Period>('month');
   const [showPeriod, setShowPeriod] = useState(false);
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   const loading = wLoad || tLoad || iLoad;
+
+  const exportWorkersToExcel = () => {
+    const data = workers.map(w => {
+      const pDays = (w.attendance || []).filter(a => a.status === 'present').length;
+      const advances = (w.advances || []).reduce((sum, a) => sum + Number(a.amount), 0);
+      const discounts = (w.attendance || []).reduce((sum, a) => sum + Number(a.discount_amount || 0), 0);
+      const gross = pDays * w.daily_rate;
+      return {
+        'الاسم': w.name,
+        'أيام الحضور': pDays,
+        'الأجر اليومي (دج)': w.daily_rate,
+        'إجمالي المستحقات': gross,
+        'إجمالي السلفيات': advances,
+        'الخصومات': discounts,
+        'الصافي للدفع': gross - advances - discounts
+      };
+    });
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "الرواتب");
+    XLSX.writeFile(wb, `تقرير_الرواتب_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const exportInventoryToExcel = () => {
+    const data = items.map(i => ({
+      'الصنف': i.sub_type,
+      'القسم': MAIN_TYPE_LABELS[i.main_type],
+      'الرصيد المتاح': i.stock?.quantity ?? 0,
+      'الوحدة': i.unit,
+      'حد التنبيه': i.min_stock_level ?? 50
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "المخزون");
+    XLSX.writeFile(wb, `جرد_المخزن_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
 
   const presentRate = calcAttendanceRate(presentCount, workers.length);
 
@@ -275,10 +314,31 @@ export default function ReportsPage() {
               </div>
             )}
           </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 btn-secondary rounded-2xl text-sm font-black">
-            <Download size={15} />
-            تصدير PDF
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setShowExportOptions(p => !p)}
+              className="flex items-center gap-2 px-4 py-2.5 btn-secondary rounded-2xl text-sm font-black"
+            >
+              <Download size={15} />
+              تصدير البيانات
+            </button>
+            {showExportOptions && (
+              <div className="absolute top-full mt-2 left-0 glass-card rounded-2xl border border-white/30 dark:border-slate-700 shadow-xl z-20 min-w-[200px] overflow-hidden flex flex-col">
+                <button
+                  onClick={() => { exportWorkersToExcel(); setShowExportOptions(false); }}
+                  className="flex text-right w-full items-center px-4 py-3 text-sm font-black hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors text-slate-700 dark:text-slate-200"
+                >
+                  📄 تصدير رواتب العمال (Excel)
+                </button>
+                <button
+                  onClick={() => { exportInventoryToExcel(); setShowExportOptions(false); }}
+                  className="flex text-right w-full items-center px-4 py-3 text-sm font-black hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-slate-700 dark:text-slate-200 border-t border-slate-100 dark:border-slate-800"
+                >
+                  📦 تصدير جرد المخزن (Excel)
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
