@@ -5,14 +5,43 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Package, ClipboardList, TrendingUp, Wallet,
-  Menu, X, ChevronRight, Sun, Moon, BoxesIcon, CalendarCheck,
+  X, ChevronRight, Sun, Moon, CalendarCheck, LogOut,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { useInventory } from '@/lib/hooks/useInventory';
-import { LogOut } from 'lucide-react';
+
+/* ─── لوغو مخزن منصور ─── */
+function MansourLogo({ size = 40 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="sb-bg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#1e1b4b" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </linearGradient>
+        <linearGradient id="sb-gold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="100%" stopColor="#d97706" />
+        </linearGradient>
+        <linearGradient id="sb-purple" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#4f46e5" />
+        </linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="16" fill="url(#sb-bg)" />
+      <rect x="12" y="32" width="40" height="20" rx="2" fill="url(#sb-purple)" opacity="0.9" />
+      <path d="M8 33 L32 16 L56 33 Z" fill="url(#sb-gold)" />
+      <rect x="26" y="40" width="12" height="12" rx="2" fill="#0f172a" opacity="0.7" />
+      <rect x="31" y="40" width="1.5" height="12" fill="#fbbf24" opacity="0.5" />
+      <rect x="15" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
+      <rect x="42" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
+      <circle cx="32" cy="16" r="3" fill="#fbbf24" />
+    </svg>
+  );
+}
 
 const navItems = [
   { name: 'لوحة التحكم', href: '/',                   icon: LayoutDashboard, badge: null },
@@ -53,8 +82,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
         collapsed && !mobile ? 'justify-center' : 'justify-between'
       )}>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-violet-500/30 shrink-0">
-            <BoxesIcon className="text-white" size={22} />
+          <div className="shrink-0">
+            <MansourLogo size={collapsed && !mobile ? 36 : 40} />
           </div>
           {(!collapsed || mobile) && (
             <div>
