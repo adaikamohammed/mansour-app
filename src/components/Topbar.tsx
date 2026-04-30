@@ -62,7 +62,7 @@ export default function Topbar() {
           <Bell size={18} />
           {/* نقطة الإشعار الحقيقية بناءً على المخزون المنخفض */}
           {lowStockItems.length > 0 && (
-            <span className="absolute top-2.5 left-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-800" />
           )}
         </button>
 

@@ -26,8 +26,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // إذا كانت الصفحة الحالية هي تسجيل الدخول، اعرضها بدون الشريط الجانبي والعلوي
-  if (pathname === '/login') {
+  // إذا كانت الصفحة الحالية هي تسجيل الدخول أو استعادة كلمة المرور، اعرضها بدون الشريط الجانبي والعلوي
+  const isAuthPage = pathname === '/login' || pathname === '/forgot-password' || pathname === '/reset-password';
+  
+  if (isAuthPage) {
     return <main className="min-h-screen bg-slate-50 dark:bg-slate-950">{children}</main>;
   }
 

@@ -34,12 +34,16 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
     });
 
-    if (err) {
-      setError(err.message);
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(data.error || 'حدث خطأ غير متوقع');
       setLoading(false);
     } else {
       setSuccess(true);

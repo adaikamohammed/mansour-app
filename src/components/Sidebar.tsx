@@ -99,7 +99,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
             className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
             aria-label={collapsed ? 'فتح الشريط' : 'طي الشريط'}
           >
-            <motion.div animate={{ rotate: collapsed ? 180 : 0 }} transition={{ duration: 0.3 }}>
+            <motion.div animate={{ rotate: collapsed ? 0 : 180 }} transition={{ duration: 0.3 }}>
               <ChevronRight size={18} />
             </motion.div>
           </button>
@@ -125,7 +125,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
               title={collapsed && !mobile ? item.name : undefined}
             >
               <motion.div
-                whileHover={{ x: collapsed && !mobile ? 0 : -3 }}
+                whileHover={{ x: collapsed && !mobile ? 0 : 3 }}
                 whileTap={{ scale: 0.97 }}
                 className={cn(
                   'sidebar-item relative group',
@@ -170,8 +170,8 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
 
                 {/* Tooltip عند الطي */}
                 {collapsed && !mobile && (
-                  <div className="absolute left-full mr-3 -translate-x-1 scale-0 group-hover:scale-100 group-hover:-translate-x-3 transition-all origin-right z-50 pointer-events-none">
-                    <div className="bg-slate-900 dark:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl mr-2">
+                  <div className="absolute right-full ml-3 translate-x-1 group-hover:scale-100 group-hover:translate-x-3 transition-all origin-left z-50 pointer-events-none">
+                    <div className="bg-slate-900 dark:bg-slate-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-xl ml-2">
                       {item.name}
                     </div>
                   </div>
