@@ -5,11 +5,12 @@ export async function proxy(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  // المسارات المفتوحة (تسجيل الدخول، استعادة كلمة المرور، روابط الأوت)
+  // المسارات المفتوحة (تسجيل الدخول، استعادة كلمة المرور، روابط الأوت، ومسارات الـ API الخاصة بالمصادقة)
   const isAuthPath = pathname.startsWith('/login') || 
                      pathname.startsWith('/forgot-password') || 
                      pathname.startsWith('/reset-password') ||
-                     pathname.startsWith('/auth/callback');
+                     pathname.startsWith('/auth/callback') ||
+                     pathname.startsWith('/api/auth');
 
   if (isAuthPath) {
     return res;
@@ -54,9 +55,9 @@ export const config = {
      * نطبق الحماية على جميع المسارات ماعدا:
      * - _next (ملفات Next.js الداخلية)
      * - الأيقونات والصور الثابتة
-     * - login, forgot-password, reset-password, auth/callback
+     * - login, forgot-password, reset-password, auth/callback, api/auth
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|login|forgot-password|reset-password|auth/callback).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|login|forgot-password|reset-password|auth/callback|api/auth).*)',
   ],
 };
 

@@ -33,9 +33,8 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      // If user not found, we still return 200 to prevent enumeration
-      if (error.message.includes("User not found")) {
-        return NextResponse.json({ success: true });
+      if (error.message.includes("not found") || error.message.includes("User with this email not found")) {
+        return NextResponse.json({ error: 'هذا البريد الإلكتروني غير مسجل لدينا.' }, { status: 404 });
       }
       throw error;
     }

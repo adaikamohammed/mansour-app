@@ -34,19 +34,24 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
-    const res = await fetch('/api/auth/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      setError(data.error || 'حدث خطأ غير متوقع');
-      setLoading(false);
-    } else {
-      setSuccess(true);
+      if (!res.ok) {
+        setError(data.error || 'حدث خطأ غير متوقع');
+      } else {
+        setSuccess(true);
+      }
+    } catch (err) {
+      console.error(err);
+      setError('تعذر الاتصال بالخادم. يرجى المحاولة لاحقاً.');
+    } finally {
       setLoading(false);
     }
   };
@@ -126,12 +131,12 @@ export default function ForgotPasswordPage() {
                       placeholder="example@email.com"
                       required
                       dir="ltr"
-                      className="relative w-full px-4 py-3.5 rounded-2xl bg-white/8 border border-white/10
-                                 text-white placeholder-white/25 font-bold text-sm outline-none
-                                 focus:border-blue-500/60 focus:bg-white/12
+                      className="relative w-full px-4 py-3.5 rounded-2xl bg-white border border-white/10
+                                 text-slate-900 placeholder-slate-400 font-bold text-sm outline-none
+                                 focus:border-blue-500/60 focus:bg-slate-50
                                  transition-all duration-300"
                     />
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   </div>
                 </div>
 

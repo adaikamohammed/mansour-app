@@ -151,9 +151,9 @@ export default function LoginPage() {
                   required
                   dir="ltr"
                   aria-label="البريد الإلكتروني"
-                  className="relative w-full px-4 py-3.5 rounded-2xl bg-white/8 border border-white/10
-                             text-white placeholder-white/25 font-bold text-sm outline-none
-                             focus:border-blue-500/60 focus:bg-white/12
+                  className="relative w-full px-4 py-3.5 rounded-2xl bg-white border border-white/10
+                             text-slate-900 placeholder-slate-400 font-bold text-sm outline-none
+                             focus:border-blue-500/60 focus:bg-slate-50
                              transition-all duration-300"
                 />
               </div>
@@ -183,15 +183,15 @@ export default function LoginPage() {
                   required
                   dir="ltr"
                   aria-label="كلمة المرور"
-                  className="relative w-full px-4 py-3.5 pl-12 rounded-2xl bg-white/8 border border-white/10
-                             text-white placeholder-white/25 font-bold text-sm outline-none
-                             focus:border-blue-500/60 focus:bg-white/12
+                  className="relative w-full px-4 py-3.5 pl-12 rounded-2xl bg-white border border-white/10
+                             text-slate-900 placeholder-slate-400 font-bold text-sm outline-none
+                             focus:border-blue-500/60 focus:bg-slate-50
                              transition-all duration-300"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(!showPass)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                   aria-label={showPass ? 'إخفاء' : 'إظهار'}
                 >
                   {showPass ? <EyeOff size={18} /> : <Eye size={18} />}

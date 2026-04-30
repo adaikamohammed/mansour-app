@@ -36,7 +36,11 @@ export function useAuth(): AuthState & { signOut: () => Promise<void> } {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      window.location.href = '/login';
+    }
   };
 
   return { user, role, loading, signOut };
