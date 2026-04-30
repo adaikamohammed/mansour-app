@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff, CheckCircle2, Package } from 'lucide-react';
@@ -30,9 +30,31 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  // التحقق من وجود الجلسة (أو نجاح استبدال التوكن) عند تحميل الصفحة
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // إذا لم يكن هناك جلسة، قد يكون الرابط منتهي الصلاحية أو تم استخدامه
+        setSessionError('رابط الاستعادة غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.');
+      }
+    };
+    
+    checkSession();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) setSessionError(null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (sessionError) return;
+    
     if (password !== confirmPassword) {
       setError('كلمات المرور غير متطابقة');
       return;
@@ -45,6 +67,14 @@ export default function ResetPasswordPage() {
     setLoading(true);
     setError(null);
 
+    // التأكد من الجلسة قبل التحديث
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setError('انتهت صلاحية الرابط. يرجى طلب رابط استعادة جديد.');
+      setLoading(false);
+      return;
+    }
+
     const { error: err } = await supabase.auth.updateUser({ password });
 
     if (err) {
@@ -54,7 +84,7 @@ export default function ResetPasswordPage() {
       setSuccess(true);
       setLoading(false);
       setTimeout(() => {
-        router.push('/login');
+        window.location.href = '/login';
       }, 3000);
     }
   };
@@ -147,10 +177,10 @@ export default function ResetPasswordPage() {
                 </div>
               </div>
 
-              {error && (
+              {(error || sessionError) && (
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold flex items-center gap-2">
                   <span>⚠️</span>
-                  <span>{error}</span>
+                  <span>{error || sessionError}</span>
                 </div>
               )}
 

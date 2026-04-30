@@ -34,14 +34,23 @@ export async function sendPasswordResetEmail(
               <p style="color:#334155;font-size:16px;line-height:1.8;margin:0 0 24px;text-align:right;">
                   وصلنا طلب لإعادة تعيين كلمة مرور حسابك في <strong>مخزن منصور</strong>. إذا كنت أنت من قام بهذا الطلب، يرجى الضغط على الزر أدناه:
               </p>
-              <div style="text-align:center;margin-bottom:32px;">
+              <div style="text-align:center;margin-bottom:24px;">
                   <a href="${resetLink}"
-                     style="display:inline-block;background:#2563eb;color:white;padding:18px 48px;border-radius:16px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 16px rgba(37,99,235,0.25);">
+                     target="_blank"
+                     style="display:inline-block;background:#2563eb;color:white;padding:16px 40px;border-radius:12px;text-decoration:none;font-weight:bold;font-size:16px;">
                       تعيين كلمة مرور جديدة
                   </a>
               </div>
-              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:16px;margin-bottom:24px;">
-                <p style="margin:0;color:#64748b;font-size:13px;text-align:center;line-height:1.6;">
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:24px;word-break:break-all;">
+                <p style="margin:0 0 10px;color:#64748b;font-size:13px;text-align:right;">
+                    إذا لم يعمل الزر أعلاه، قم بنسخ الرابط التالي ولصقه في المتصفح:
+                </p>
+                <a href="${resetLink}" target="_blank" style="color:#2563eb;font-size:12px;text-decoration:underline;">
+                    ${resetLink}
+                </a>
+              </div>
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:24px;">
+                <p style="margin:0;color:#166534;font-size:13px;text-align:center;">
                     🔒 هذا الرابط صالح لمدة <strong>ساعة واحدة</strong> فقط.<br>
                     إذا لم تطلب هذا الإجراء، يمكنك تجاهل هذه الرسالة بأمان.
                 </p>
