@@ -1,19 +1,19 @@
 {
-  "name": "ألفا ستورج",
-  "short_name": "ألفا ستورج",
-  "description": "نظام متكامل لإدارة المخزن والعمال والمهام",
+  "name": "مخزن منصور",
+  "short_name": "مخزن منصور",
+  "description": "نظام الإدارة المتكامل لمخزن منصور",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#7c3aed",
+  "background_color": "#0a0f1e",
+  "theme_color": "#2563eb",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

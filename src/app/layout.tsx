@@ -22,6 +22,10 @@ export const metadata: Metadata = {
   description: 'نظام متكامل لإدارة المخزن والعمال والمهام — مخزن منصور',
   keywords: ['مخزن', 'عمال', 'حضور', 'مهام', 'تقارير'],
   manifest: '/manifest.json',
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
