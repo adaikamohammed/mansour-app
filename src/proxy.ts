@@ -55,9 +55,10 @@ export const config = {
      * نطبق الحماية على جميع المسارات ماعدا:
      * - _next (ملفات Next.js الداخلية)
      * - الأيقونات والصور الثابتة
+     * - ملفات PWA: manifest.json, sw.js
      * - login, forgot-password, reset-password, auth/callback, api/auth
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|login|forgot-password|reset-password|auth/callback|api/auth).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|manifest\\.json|sw\\.js|.*\\.png$|.*\\.svg$|.*\\.ico$|login|forgot-password|reset-password|auth/callback|api/auth).*)',
   ],
 };
 
