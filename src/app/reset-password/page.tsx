@@ -34,15 +34,34 @@ export default function ResetPasswordPage() {
 
   // التحقق من وجود الجلسة (أو نجاح استبدال التوكن) عند تحميل الصفحة
   useEffect(() => {
-    const checkSession = async () => {
+    const initializeSession = async () => {
+      // 1. محاولة استخراج التوكن من الرابط مباشرة (لأن بعض النسخ لا تقرأه تلقائياً)
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!error) {
+            setSessionError(null);
+            return; // نجحنا في بناء الجلسة
+          }
+        }
+      }
+
+      // 2. إذا لم يكن هناك توكن في الرابط، نتحقق من الجلسة الحالية
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        // إذا لم يكن هناك جلسة، قد يكون الرابط منتهي الصلاحية أو تم استخدامه
         setSessionError('رابط الاستعادة غير صالح أو منتهي الصلاحية. يرجى طلب رابط جديد.');
       }
     };
     
-    checkSession();
+    initializeSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) setSessionError(null);
