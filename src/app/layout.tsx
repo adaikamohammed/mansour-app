@@ -15,6 +15,10 @@ const cairo = Cairo({
 
 export const viewport: Viewport = {
   themeColor: '#2563eb',
+  width: 'device-width',
+  initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 5,
 };
 
 export const metadata: Metadata = {
@@ -22,9 +26,19 @@ export const metadata: Metadata = {
   description: 'نظام متكامل لإدارة المخزن والعمال والمهام — مخزن منصور',
   keywords: ['مخزن', 'عمال', 'حضور', 'مهام', 'تقارير'],
   manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'مخزن منصور',
+  },
   icons: {
-    icon: '/logo.png',
-    apple: '/logo.png',
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 
@@ -43,6 +57,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 var p = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
                 if (t === 'dark' || (!t && p === 'dark')) document.documentElement.classList.add('dark');
               } catch(e) {}
+            `,
+          }}
+        />
+        <Script
+          id="sw-register"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                    .then(function(reg) { console.log('SW registered:', reg.scope); })
+                    .catch(function(err) { console.warn('SW registration failed:', err); });
+                });
+              }
             `,
           }}
         />
