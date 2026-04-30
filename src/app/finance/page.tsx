@@ -153,7 +153,7 @@ export default function FinancePage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
               <Wallet size={20} />
             </div>
             الإدارة المالية
@@ -188,7 +188,7 @@ export default function FinancePage() {
               className="form-input py-2.5 pr-10 text-sm font-bold bg-white dark:bg-slate-900 shadow-sm cursor-pointer"
             />
           </div>
-          <button className="btn btn-primary px-4 py-2.5 text-sm shadow-lg shadow-violet-200 dark:shadow-violet-900/40 shrink-0">
+          <button className="btn btn-primary px-4 py-2.5 text-sm shadow-lg shadow-blue-200 dark:shadow-blue-900/40 shrink-0">
             <Download size={16} />
             تصدير كشف
           </button>
@@ -233,7 +233,7 @@ export default function FinancePage() {
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-800">
           <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Users className="text-violet-500" size={18} />
+            <Users className="text-blue-500" size={18} />
             كشف الرواتب - {selectedMonth}
           </h2>
           <Badge variant="normal" size="sm">{payrollData.length} عمال</Badge>
@@ -275,11 +275,11 @@ export default function FinancePage() {
                     >
                       <td>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 flex items-center justify-center shrink-0 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden">
+                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0 border-2 border-white dark:border-slate-900 shadow-sm overflow-hidden">
                             {worker.photo_url ? (
                               <img src={worker.photo_url} alt={worker.name} className="w-full h-full object-cover" />
                             ) : (
-                              <span className="text-sm font-black text-violet-600 dark:text-violet-400">
+                              <span className="text-sm font-black text-blue-600 dark:text-blue-400">
                                 {getInitials(worker.name)}
                               </span>
                             )}
@@ -334,7 +334,7 @@ export default function FinancePage() {
                         )}
                       </td>
                       <td className="text-center">
-                        <span className={`px-3 py-1.5 font-black rounded-lg ${worker.netDue > 0 ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                        <span className={`px-3 py-1.5 font-black rounded-lg ${worker.netDue > 0 ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                           {formatCurrency(worker.netDue)}
                         </span>
                       </td>
@@ -423,9 +423,9 @@ export default function FinancePage() {
                 <span className="text-sm font-bold text-slate-600 dark:text-slate-300">الأجر اليومي</span>
                 <span className="font-black">{formatCurrency(payrollTarget.daily_rate)}</span>
               </div>
-              <div className="flex justify-between items-center p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">إجمالي الأجر المستحق</span>
-                <span className="font-black text-indigo-600">+{formatCurrency(payrollTarget.basicSalary)}</span>
+              <div className="flex justify-between items-center p-3 bg-sky-50 dark:bg-sky-900/20 rounded-xl">
+                <span className="text-sm font-bold text-sky-600 dark:text-sky-400">إجمالي الأجر المستحق</span>
+                <span className="font-black text-sky-600">+{formatCurrency(payrollTarget.basicSalary)}</span>
               </div>
               <div className="flex justify-between items-center p-3 bg-rose-50 dark:bg-rose-900/20 rounded-xl">
                 <span className="text-sm font-bold text-rose-600 dark:text-rose-400">خصومات والتأخير</span>
@@ -443,7 +443,7 @@ export default function FinancePage() {
               )}
             </div>
 
-            <div className="p-4 bg-gradient-to-l from-violet-600 to-indigo-600 rounded-2xl text-white shadow-xl shadow-violet-500/20">
+            <div className="p-4 bg-gradient-to-l from-blue-600 to-sky-600 rounded-2xl text-white shadow-xl shadow-blue-500/20">
               <div className="flex justify-between items-center">
                 <div>
                   <p className="text-xs font-bold text-white/70 mb-1">المتبقي للدفع الآن</p>
@@ -463,3 +463,4 @@ export default function FinancePage() {
     </div>
   );
 }
+

@@ -13,7 +13,7 @@ const styles = {
   late: 'bg-amber-100/50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20',
   low: 'bg-orange-100/50 text-orange-700 border-orange-200 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/20',
   normal: 'bg-blue-100/50 text-blue-700 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/20',
-  high: 'bg-indigo-100/50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20',
+  high: 'bg-sky-100/50 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20',
 };
 
 const StatusBadge = ({ status, text }: StatusBadgeProps) => {
@@ -30,3 +30,4 @@ const StatusBadge = ({ status, text }: StatusBadgeProps) => {
 };
 
 export default StatusBadge;
+

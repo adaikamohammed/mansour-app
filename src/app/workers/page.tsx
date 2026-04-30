@@ -151,15 +151,15 @@ function AttendanceCalendar({
               className={`
                 relative aspect-square rounded-xl flex items-center justify-center text-xs font-black
                 transition-all duration-200 select-none
-                ${isFuture ? 'opacity-25 cursor-not-allowed' : 'cursor-pointer hover:ring-2 hover:ring-violet-400/50'}
-                ${isToday ? 'ring-2 ring-violet-500' : ''}
+                ${isFuture ? 'opacity-25 cursor-not-allowed' : 'cursor-pointer hover:ring-2 hover:ring-blue-400/50'}
+                ${isToday ? 'ring-2 ring-blue-500' : ''}
                 ${color ? color.bg + ' text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300'}
                 ${pending[dateStr] ? 'scale-105' : ''}
               `}
             >
               {day}
               {pending[dateStr] && (
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-violet-500 border border-white" />
+                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-blue-500 border border-white" />
               )}
             </motion.button>
           );
@@ -212,10 +212,10 @@ function WorkerCard({
       exit={{ opacity: 0, scale: 0.93 }}
       className="group relative"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-600/10 to-indigo-600/10 rounded-4xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-sky-600/10 rounded-4xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
       <div className="glass-card rounded-4xl overflow-hidden border border-white/40 dark:border-slate-800/50">
         {/* شريط علوي ملوّن */}
-        <div className="h-20 bg-gradient-to-l from-violet-600 to-indigo-500 relative">
+        <div className="h-20 bg-gradient-to-l from-blue-600 to-sky-500 relative">
           {isManager && (
             <div className="absolute top-3 left-3 flex gap-1.5">
               <button onClick={onEdit} className="p-1.5 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40 transition-all" title="تعديل">
@@ -231,10 +231,10 @@ function WorkerCard({
         <div className="px-5 pb-5 relative">
           {/* صورة وشارة الحالة */}
           <div className="flex justify-between items-end -mt-9 mb-3">
-            <div className="w-18 h-18 w-[72px] h-[72px] rounded-3xl border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30">
+            <div className="w-18 h-18 w-[72px] h-[72px] rounded-3xl border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30">
               {worker.photo_url
                 ? <img src={worker.photo_url} alt={worker.name} className="w-full h-full object-cover" />
-                : <span className="text-2xl font-black text-violet-600">{getInitials(worker.name)}</span>
+                : <span className="text-2xl font-black text-blue-600">{getInitials(worker.name)}</span>
               }
             </div>
             {worker.today_status && (
@@ -244,24 +244,24 @@ function WorkerCard({
             )}
           </div>
 
-          <h3 className="text-lg font-black text-slate-800 dark:text-white mb-0.5 group-hover:text-violet-600 transition-colors">{worker.name}</h3>
-          <p className="text-xs font-bold text-violet-600 dark:text-violet-400 mb-3">{formatCurrency(worker.daily_rate)} / يوم</p>
+          <h3 className="text-lg font-black text-slate-800 dark:text-white mb-0.5 group-hover:text-blue-600 transition-colors">{worker.name}</h3>
+          <p className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-3">{formatCurrency(worker.daily_rate)} / يوم</p>
 
           <div className="space-y-1.5 mb-4">
             {worker.phone && (
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <Phone size={11} className="text-violet-400" />
+                <Phone size={11} className="text-blue-400" />
                 <span dir="ltr" className="font-bold">{worker.phone}</span>
               </div>
             )}
             {worker.address && (
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <MapPin size={11} className="text-violet-400" />
+                <MapPin size={11} className="text-blue-400" />
                 <span className="font-bold truncate">{worker.address}</span>
               </div>
             )}
             <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Calendar size={11} className="text-violet-400" />
+              <Calendar size={11} className="text-blue-400" />
               <span className="font-bold">انضم: {formatDate(worker.join_date, { year: 'numeric', month: 'short' })}</span>
             </div>
           </div>
@@ -271,10 +271,10 @@ function WorkerCard({
             <button
               onClick={onAttendance}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl
-                bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-400
-                text-xs font-black hover:bg-violet-100 dark:hover:bg-violet-900/40
-                border border-violet-100 dark:border-violet-900/30 transition-all duration-200
-                hover:shadow-md hover:shadow-violet-200/50"
+                bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400
+                text-xs font-black hover:bg-blue-100 dark:hover:bg-blue-900/40
+                border border-blue-100 dark:border-blue-900/30 transition-all duration-200
+                hover:shadow-md hover:shadow-blue-200/50"
             >
               <Calendar size={14} />
               تسجيل الحضور
@@ -379,7 +379,7 @@ export default function WorkersPage() {
   const f = (key: keyof WorkerFormData, val: string | number) => setForm(p => ({ ...p, [key]: val }));
 
   const stats = [
-    { label: 'إجمالي العمال', value: workers.length,  icon: Users,     color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20', key: 'all' },
+    { label: 'إجمالي العمال', value: workers.length,  icon: Users,     color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', key: 'all' },
     { label: 'حاضر اليوم',   value: presentCount,     icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', key: 'present' },
     { label: 'غائب',          value: absentCount,      icon: UserX,     color: 'text-rose-600', bg: 'bg-rose-50 dark:bg-rose-900/20', key: 'absent' },
     { label: 'متأخر',         value: lateCount,        icon: Clock,     color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20', key: 'late' },
@@ -397,7 +397,7 @@ export default function WorkersPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
             onClick={() => setFilter(stat.key as FilterStatus)}
-            className={`glass-card rounded-3xl p-4 text-right group hover:-translate-y-1 transition-all duration-300 w-full ${filter === stat.key ? 'ring-2 ring-violet-500/60' : ''}`}
+            className={`glass-card rounded-3xl p-4 text-right group hover:-translate-y-1 transition-all duration-300 w-full ${filter === stat.key ? 'ring-2 ring-blue-500/60' : ''}`}
           >
             <div className={`w-10 h-10 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-3 shadow-inner`}>
               <stat.icon size={20} />
@@ -426,7 +426,7 @@ export default function WorkersPage() {
           )}
         </div>
         {isManager && (
-          <Button onClick={openAdd} icon={<UserPlus size={16} />} className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+          <Button onClick={openAdd} icon={<UserPlus size={16} />} className="shrink-0 shadow-lg shadow-blue-200 dark:shadow-blue-900/30">
             إضافة عامل
           </Button>
         )}
@@ -485,10 +485,10 @@ export default function WorkersPage() {
           <div className="flex justify-center mb-2">
             <label className="relative cursor-pointer group">
               <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              <div className="w-24 h-24 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-900 group-hover:border-violet-500 transition-colors shadow-inner">
-                {form.photo_url ? <img src={form.photo_url} className="w-full h-full object-cover" alt="avatar" /> : <Camera size={28} className="text-slate-400 group-hover:text-violet-500" />}
+              <div className="w-24 h-24 rounded-3xl border-2 border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center overflow-hidden bg-slate-50 dark:bg-slate-900 group-hover:border-blue-500 transition-colors shadow-inner">
+                {form.photo_url ? <img src={form.photo_url} className="w-full h-full object-cover" alt="avatar" /> : <Camera size={28} className="text-slate-400 group-hover:text-blue-500" />}
               </div>
-              <div className="absolute -bottom-1 -right-1 bg-violet-600 text-white p-1.5 rounded-xl shadow-lg"><Plus size={14} /></div>
+              <div className="absolute -bottom-1 -right-1 bg-blue-600 text-white p-1.5 rounded-xl shadow-lg"><Plus size={14} /></div>
             </label>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -517,3 +517,4 @@ export default function WorkersPage() {
     </div>
   );
 }
+

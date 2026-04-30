@@ -99,7 +99,7 @@ export default function TasksPage() {
       {/* ─── إحصاءات + شريط التقدم ─── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
-          { label: 'مهام متبقية', value: pendingCount,   icon: ListTodo,      color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20',    border: 'border-violet-100 dark:border-violet-900/30' },
+          { label: 'مهام متبقية', value: pendingCount,   icon: ListTodo,      color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20',    border: 'border-blue-100 dark:border-blue-900/30' },
           { label: 'مهام عاجلة',  value: highCount,      icon: Flame,         color: 'text-rose-500',   bg: 'bg-rose-50 dark:bg-rose-900/20',          border: 'border-rose-100 dark:border-rose-900/30'   },
           { label: 'تم إنجازها',  value: completedCount, icon: ClipboardCheck, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20',  border: 'border-emerald-100 dark:border-emerald-900/30' },
         ].map((s, i) => (
@@ -130,10 +130,10 @@ export default function TasksPage() {
       >
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Target size={16} className="text-violet-500" />
+            <Target size={16} className="text-blue-500" />
             <span className="text-sm font-black text-slate-700 dark:text-slate-200">نسبة الإنجاز الكلية</span>
           </div>
-          <span className="text-2xl font-black text-violet-600">{completionRate}%</span>
+          <span className="text-2xl font-black text-blue-600">{completionRate}%</span>
         </div>
         <div className="progress-bar h-3 rounded-full">
           <motion.div
@@ -158,7 +158,7 @@ export default function TasksPage() {
               onClick={() => setTab(t.key as FilterTab)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black transition-all duration-200 ${
                 tab === t.key
-                  ? 'bg-violet-600 text-white shadow-lg shadow-violet-200 dark:shadow-violet-900/30'
+                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 dark:shadow-blue-900/30'
                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
               }`}
             >
@@ -180,7 +180,7 @@ export default function TasksPage() {
             />
           </div>
           {isManager && (
-            <Button onClick={openAdd} icon={<Plus size={16} />} size="sm" className="shrink-0 shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+            <Button onClick={openAdd} icon={<Plus size={16} />} size="sm" className="shrink-0 shadow-lg shadow-blue-200 dark:shadow-blue-900/30">
               مهمة جديدة
             </Button>
           )}
@@ -213,7 +213,7 @@ export default function TasksPage() {
                   exit={{ opacity: 0, scale: 0.96, x: 16 }}
                   transition={{ delay: idx * 0.04 }}
                   className={`glass-card rounded-3xl group transition-all duration-300 overflow-hidden ${
-                    task.is_completed ? 'opacity-50' : 'hover:shadow-xl hover:shadow-violet-600/5'
+                    task.is_completed ? 'opacity-50' : 'hover:shadow-xl hover:shadow-blue-600/5'
                   }`}
                 >
                   {/* شريط الأولوية الجانبي */}
@@ -228,7 +228,7 @@ export default function TasksPage() {
                         className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 transition-all duration-300 ${
                           task.is_completed
                             ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30'
-                            : `bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-dashed border-slate-300 dark:border-slate-600 ${isManager ? 'hover:border-violet-400 hover:text-violet-600 cursor-pointer' : 'cursor-default'}`
+                            : `bg-slate-100 dark:bg-slate-800 text-slate-400 border-2 border-dashed border-slate-300 dark:border-slate-600 ${isManager ? 'hover:border-blue-400 hover:text-blue-600 cursor-pointer' : 'cursor-default'}`
                         }`}
                       >
                         {task.is_completed ? <CheckSquare size={20} /> : <Square size={20} />}
@@ -245,7 +245,7 @@ export default function TasksPage() {
                         <div className="flex items-center flex-wrap gap-2 mt-1.5">
                           {task.target_date && (
                             <span className="flex items-center gap-1 text-[11px] font-black text-slate-400">
-                              <Calendar size={10} className="text-violet-500" />
+                              <Calendar size={10} className="text-blue-500" />
                               {formatDateShort(task.target_date)}
                             </span>
                           )}
@@ -259,7 +259,7 @@ export default function TasksPage() {
                       {/* أزرار الإجراءات */}
                       {isManager && (
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shrink-0">
-                          <button onClick={() => openEdit(task)} className="p-2 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-all" title="تعديل">
+                          <button onClick={() => openEdit(task)} className="p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all" title="تعديل">
                             <Edit2 size={15} />
                           </button>
                           <button onClick={() => setDeleteTarget(task)} className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all" title="حذف">
@@ -300,3 +300,4 @@ export default function TasksPage() {
     </div>
   );
 }
+

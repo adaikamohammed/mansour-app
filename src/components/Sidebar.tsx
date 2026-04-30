@@ -7,6 +7,7 @@ import {
   LayoutDashboard, Users, Package, ClipboardList, TrendingUp, Wallet,
   X, ChevronRight, Sun, Moon, CalendarCheck, LogOut,
 } from 'lucide-react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
@@ -16,30 +17,16 @@ import { useInventory } from '@/lib/hooks/useInventory';
 /* ─── لوغو مخزن منصور ─── */
 function MansourLogo({ size = 40 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="sb-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1e1b4b" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <linearGradient id="sb-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-        <linearGradient id="sb-purple" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="16" fill="url(#sb-bg)" />
-      <rect x="12" y="32" width="40" height="20" rx="2" fill="url(#sb-purple)" opacity="0.9" />
-      <path d="M8 33 L32 16 L56 33 Z" fill="url(#sb-gold)" />
-      <rect x="26" y="40" width="12" height="12" rx="2" fill="#0f172a" opacity="0.7" />
-      <rect x="31" y="40" width="1.5" height="12" fill="#fbbf24" opacity="0.5" />
-      <rect x="15" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
-      <rect x="42" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
-      <circle cx="32" cy="16" r="3" fill="#fbbf24" />
-    </svg>
+    <div className="relative flex items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm border border-slate-100 p-1" style={{ width: size, height: size }}>
+      <Image 
+        src="/logo.png" 
+        alt="Mansour Logo" 
+        width={size} 
+        height={size} 
+        className="object-contain"
+        priority
+      />
+    </div>
   );
 }
 
@@ -87,7 +74,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
           </div>
           {(!collapsed || mobile) && (
             <div>
-              <h1 className="text-lg font-black tracking-tight bg-gradient-to-l from-violet-600 to-indigo-500 bg-clip-text text-transparent leading-none">
+              <h1 className="text-lg font-black tracking-tight bg-gradient-to-l from-blue-600 to-sky-500 bg-clip-text text-transparent leading-none">
                 مخزن منصور
               </h1>
               <p className="text-[10px] text-slate-400 font-bold mt-0.5">إدارة المخزن والعمال</p>
@@ -150,7 +137,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 {isActive && (
                   <motion.div
                     layoutId="nav-active"
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-l from-violet-600 to-indigo-500 shadow-md shadow-violet-500/30 -z-10"
+                    className="absolute inset-0 rounded-2xl bg-gradient-to-l from-blue-600 to-sky-500 shadow-md shadow-blue-500/30 -z-10"
                     transition={{ type: 'spring', stiffness: 380, damping: 35 }}
                   />
                 )}
@@ -159,7 +146,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                   size={20}
                   className={cn(
                     'shrink-0 transition-transform duration-300',
-                    isActive ? 'text-white' : 'group-hover:text-violet-600',
+                    isActive ? 'text-white' : 'group-hover:text-blue-600',
                   )}
                 />
 
@@ -173,9 +160,9 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
                 {dynamicBadge && (!collapsed || mobile) && (
                   <span className={cn(
                     'mr-auto text-[10px] font-black px-2 py-0.5 rounded-full',
-                    isActive
+                       isActive
                       ? 'bg-white/20 text-white'
-                      : 'bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400'
+                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                   )}>
                     {dynamicBadge}
                   </span>
@@ -285,3 +272,4 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
     </>
   );
 }
+

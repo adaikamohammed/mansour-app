@@ -31,7 +31,7 @@ const CATEGORY_ICONS: Record<InventoryMainType, React.ElementType> = {
 const CATEGORY_COLORS: Record<InventoryMainType, { color: string; bg: string; ring: string; border: string }> = {
   carton:   { color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20',   ring: 'ring-amber-200 dark:ring-amber-800',     border: 'border-amber-500' },
   bottle:   { color: 'text-blue-600',    bg: 'bg-blue-50 dark:bg-blue-900/20',     ring: 'ring-blue-200 dark:ring-blue-800',       border: 'border-blue-500' },
-  cap:      { color: 'text-violet-600',  bg: 'bg-violet-50 dark:bg-violet-900/20', ring: 'ring-violet-200 dark:ring-violet-800',   border: 'border-violet-500' },
+  cap:      { color: 'text-blue-600',  bg: 'bg-blue-50 dark:bg-blue-900/20', ring: 'ring-blue-200 dark:ring-blue-800',   border: 'border-blue-500' },
   material: { color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', ring: 'ring-emerald-200 dark:ring-emerald-800', border: 'border-emerald-500' },
 };
 
@@ -243,7 +243,7 @@ export default function InventoryPage() {
             <Button variant="secondary" onClick={() => router.push('/inventory/history')} icon={<History size={16} />}>
               سجل الحركات
             </Button>
-            <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shadow-lg shadow-violet-200 dark:shadow-violet-900/30">
+            <Button onClick={() => { setEditTargetId(null); setForm(emptyForm); setShowAddModal(true); }} icon={<Plus size={16} />} className="shadow-lg shadow-blue-200 dark:shadow-blue-900/30">
               إضافة صنف
             </Button>
           </div>
@@ -351,7 +351,7 @@ export default function InventoryPage() {
                               
                               <button
                                 onClick={() => isManager && openTransactionModal(item, 'in')}
-                                className={`flex-[1.2] text-center font-black text-2xl sm:text-xl ${isManager ? 'cursor-pointer hover:text-violet-600 dark:hover:text-violet-400' : 'cursor-default'} text-slate-900 dark:text-white truncate px-2`}
+                                className={`flex-[1.2] text-center font-black text-2xl sm:text-xl ${isManager ? 'cursor-pointer hover:text-blue-600 dark:hover:text-blue-400' : 'cursor-default'} text-slate-900 dark:text-white truncate px-2`}
                                 title="الرصيد المتاح"
                               >
                                 {formatNumber(qty)}
@@ -443,7 +443,7 @@ export default function InventoryPage() {
               <p className="font-black text-slate-800 dark:text-white mb-1">{txTarget.sub_type}</p>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-slate-500">الرصيد الحالي:</span>
-                <span className="font-bold text-violet-600">{txTarget.stock?.quantity ?? 0} {txTarget.unit}</span>
+                <span className="font-bold text-blue-600">{txTarget.stock?.quantity ?? 0} {txTarget.unit}</span>
               </div>
             </div>
 
@@ -505,3 +505,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+

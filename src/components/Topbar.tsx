@@ -57,7 +57,7 @@ export default function Topbar() {
         <button
           onClick={() => setShowNotifs(!showNotifs)}
           aria-label="الإشعارات"
-          className="relative p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 hover:border-violet-200 dark:hover:border-violet-700 shadow-sm transition-all duration-300"
+          className="relative p-3 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-700 shadow-sm transition-all duration-300"
         >
           <Bell size={18} />
           {/* نقطة الإشعار الحقيقية بناءً على المخزون المنخفض */}
@@ -111,7 +111,7 @@ export default function Topbar() {
 
         {/* بطاقة المستخدم */}
         <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm relative z-30">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-sky-600 flex items-center justify-center text-white font-black text-sm">
             {displayName[0] ?? 'م'}
           </div>
           <div className="hidden sm:block">
@@ -123,3 +123,4 @@ export default function Topbar() {
     </header>
   );
 }
+

@@ -4,60 +4,22 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogIn, Eye, EyeOff, Package } from 'lucide-react';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabase';
 
 /* ─── لوغو مخزن منصور (SVG مدمج) ─── */
 function MansourLogo({ size = 64 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <defs>
-        <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1e1b4b" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <linearGradient id="goldGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-        <linearGradient id="purpleGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* خلفية مستديرة الزوايا */}
-      <rect width="64" height="64" rx="16" fill="url(#bgGrad)" />
-
-      {/* مبنى المخزن — الجدران */}
-      <rect x="12" y="32" width="40" height="20" rx="2" fill="url(#purpleGrad)" opacity="0.9" />
-
-      {/* سقف مثلث */}
-      <path d="M8 33 L32 16 L56 33 Z" fill="url(#goldGrad)" filter="url(#glow)" />
-
-      {/* باب المخزن */}
-      <rect x="26" y="40" width="12" height="12" rx="2" fill="#0f172a" opacity="0.7" />
-      <rect x="31" y="40" width="1.5" height="12" fill="#fbbf24" opacity="0.5" />
-
-      {/* نوافذ جانبية */}
-      <rect x="15" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
-      <rect x="42" y="37" width="7" height="6" rx="1.5" fill="#fbbf24" opacity="0.25" />
-
-      {/* نجمة / زخرفة في القمة */}
-      <circle cx="32" cy="16" r="3" fill="#fbbf24" filter="url(#glow)" />
-    </svg>
+    <div className="relative flex items-center justify-center overflow-hidden rounded-[2rem] bg-white shadow-xl border border-white/20 p-2" style={{ width: size, height: size }}>
+      <Image 
+        src="/logo.png" 
+        alt="Mansour Logo" 
+        width={size} 
+        height={size} 
+        className="object-contain"
+        priority
+      />
+    </div>
   );
 }
 
@@ -94,13 +56,13 @@ export default function LoginPage() {
           animate={{ scale: [1, 1.15, 1], opacity: [0.15, 0.25, 0.15] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full"
-          style={{ background: 'radial-gradient(circle, #7c3aed55 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #3b82f655 0%, transparent 70%)' }}
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
           className="absolute bottom-[-15%] left-[-10%] w-[600px] h-[600px] rounded-full"
-          style={{ background: 'radial-gradient(circle, #4f46e555 0%, transparent 70%)' }}
+          style={{ background: 'radial-gradient(circle, #2563eb55 0%, transparent 70%)' }}
         />
         <motion.div
           animate={{ scale: [1, 1.1, 1], opacity: [0.08, 0.15, 0.08] }}
@@ -127,7 +89,7 @@ export default function LoginPage() {
         className="w-full max-w-md mx-4 relative z-10"
       >
         {/* توهج خلف البطاقة */}
-        <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-violet-600/30 to-indigo-600/20 blur-2xl" />
+        <div className="absolute -inset-1 rounded-[2rem] bg-gradient-to-br from-blue-600/30 to-sky-600/20 blur-2xl" />
 
         <div className="relative bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-2xl">
 
@@ -140,7 +102,7 @@ export default function LoginPage() {
               className="mb-5 relative"
             >
               {/* توهج حول اللوغو */}
-              <div className="absolute inset-0 rounded-2xl bg-amber-400/20 blur-xl scale-150" />
+              <div className="absolute inset-0 rounded-[2rem] bg-blue-400/20 blur-xl scale-150" />
               <div className="relative">
                 <MansourLogo size={80} />
               </div>
@@ -180,7 +142,7 @@ export default function LoginPage() {
                 البريد الإلكتروني
               </label>
               <div className="relative group">
-                <div className="absolute inset-0 rounded-2xl bg-violet-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity blur" />
+                <div className="absolute inset-0 rounded-2xl bg-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity blur" />
                 <input
                   type="email"
                   value={email}
@@ -191,7 +153,7 @@ export default function LoginPage() {
                   aria-label="البريد الإلكتروني"
                   className="relative w-full px-4 py-3.5 rounded-2xl bg-white/8 border border-white/10
                              text-white placeholder-white/25 font-bold text-sm outline-none
-                             focus:border-violet-500/60 focus:bg-white/12
+                             focus:border-blue-500/60 focus:bg-white/12
                              transition-all duration-300"
                 />
               </div>
@@ -199,11 +161,20 @@ export default function LoginPage() {
 
             {/* كلمة المرور */}
             <div className="space-y-2">
-              <label className="block text-sm font-black text-white/70">
-                كلمة المرور
-              </label>
+              <div className="flex justify-between items-center px-1">
+                <label className="block text-sm font-black text-white/70">
+                  كلمة المرور
+                </label>
+                <button
+                  type="button"
+                  onClick={() => router.push('/forgot-password')}
+                  className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  نسيت كلمة المرور؟
+                </button>
+              </div>
               <div className="relative group">
-                <div className="absolute inset-0 rounded-2xl bg-violet-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity blur" />
+                <div className="absolute inset-0 rounded-2xl bg-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity blur" />
                 <input
                   type={showPass ? 'text' : 'password'}
                   value={password}
@@ -214,7 +185,7 @@ export default function LoginPage() {
                   aria-label="كلمة المرور"
                   className="relative w-full px-4 py-3.5 pl-12 rounded-2xl bg-white/8 border border-white/10
                              text-white placeholder-white/25 font-bold text-sm outline-none
-                             focus:border-violet-500/60 focus:bg-white/12
+                             focus:border-blue-500/60 focus:bg-white/12
                              transition-all duration-300"
                 />
                 <button
@@ -251,13 +222,11 @@ export default function LoginPage() {
               className="relative w-full py-4 rounded-2xl font-black text-base text-white overflow-hidden
                          disabled:opacity-60 disabled:cursor-not-allowed mt-2"
               style={{
-                background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #6d28d9 100%)',
-                boxShadow: '0 8px 32px rgba(124, 58, 237, 0.4)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #1d4ed8 100%)',
+                boxShadow: '0 8px 32px rgba(37, 99, 235, 0.4)',
               }}
             >
-              {/* تأثير لمعة عند الـ hover */}
               <div className="absolute inset-0 bg-white/0 hover:bg-white/10 transition-colors duration-300" />
-
               <span className="relative flex items-center justify-center gap-3">
                 {loading ? (
                   <>
@@ -272,7 +241,52 @@ export default function LoginPage() {
                 )}
               </span>
             </motion.button>
+
+            {/* فاصل */}
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-4 text-[10px] font-black text-white/20 uppercase tracking-widest">أو</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            {/* تسجيل الدخول بجوجل */}
+            <motion.button
+              type="button"
+              onClick={async () => {
+                const { error } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: `${window.location.origin}/auth/callback`,
+                  },
+                });
+                if (error) setError(error.message);
+              }}
+              whileTap={{ scale: 0.98 }}
+              className="relative w-full py-3.5 rounded-2xl font-bold text-sm text-white/90 bg-white/5 border border-white/10
+                         hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              <span>المتابعة باستخدام Google</span>
+            </motion.button>
           </motion.form>
+
 
           {/* ─── تذييل البطاقة ─── */}
           <motion.p
@@ -289,3 +303,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

@@ -73,7 +73,7 @@ export default function InventoryHistoryPage() {
       {/* ─── Header ─── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card rounded-4xl p-6">
         <div>
-          <Link href="/inventory" className="inline-flex items-center gap-2 text-slate-500 hover:text-violet-600 transition-colors mb-2 font-bold text-sm">
+          <Link href="/inventory" className="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 transition-colors mb-2 font-bold text-sm">
             <ArrowLeft size={16} />
             العودة للمخزن
           </Link>
@@ -136,7 +136,7 @@ export default function InventoryHistoryPage() {
                 transition={{ delay: idx * 0.1 }}
               >
                 <div className="flex items-center gap-3 mb-4 px-2">
-                  <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-sky-50 dark:bg-sky-900/30 text-sky-500 flex items-center justify-center shrink-0">
                     <Calendar size={14} />
                   </div>
                   <h3 className="font-black text-slate-700 dark:text-slate-300 text-sm">{dateLabel}</h3>
@@ -149,7 +149,7 @@ export default function InventoryHistoryPage() {
                     const timeStr = formatTime(tx.created_at);
                     
                     return (
-                      <div key={tx.id} className="glass-card rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:items-center hover:shadow-md transition-shadow group border-r-4 border-transparent hover:border-violet-500">
+                      <div key={tx.id} className="glass-card rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row gap-4 sm:items-center hover:shadow-md transition-shadow group border-r-4 border-transparent hover:border-blue-500">
                         {/* أيقونة الحالة */}
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner ${isIn ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600'}`}>
                           {isIn ? <ArrowDownToLine size={20} /> : <ArrowUpFromLine size={20} />}
@@ -199,3 +199,4 @@ export default function InventoryHistoryPage() {
     </div>
   );
 }
+

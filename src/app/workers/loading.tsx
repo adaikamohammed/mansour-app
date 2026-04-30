@@ -18,3 +18,4 @@ export default function WorkersLoading() {
     </div>
   );
 }
+

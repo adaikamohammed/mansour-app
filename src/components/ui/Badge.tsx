@@ -43,3 +43,4 @@ export default function Badge({ variant = 'default', size = 'md', dot = false, c
     </span>
   );
 }
+

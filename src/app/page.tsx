@@ -88,7 +88,7 @@ function WeeklyBar({ tasks }: { tasks: any[] }) {
               >
                 <motion.div
                   className="absolute bottom-0 right-0 left-0 rounded-xl"
-                  style={{ background: 'linear-gradient(to top, #7c3aed, #818cf8)' }}
+                  style={{ background: 'linear-gradient(to top, #2563eb, #38bdf8)' }}
                   initial={{ height: 0 }}
                   animate={{ height: `${doneH}px` }}
                   transition={{ delay: i * 0.08 + 0.2, duration: 0.6, ease: 'easeOut' }}
@@ -144,10 +144,10 @@ export default function Dashboard() {
       name: 'إجمالي المخزون',
       value: formatNumber(totalItems),
       icon: Package,
-      color: 'text-violet-600',
-      bg: 'bg-violet-50 dark:bg-violet-900/20',
+      color: 'text-blue-600',
+      bg: 'bg-blue-50 dark:bg-blue-900/20',
       trend: `${items.length} صنف`,
-      trendColor: 'text-violet-600 bg-violet-50 dark:bg-violet-900/30',
+      trendColor: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30',
     },
   ];
 
@@ -201,7 +201,7 @@ export default function Dashboard() {
               </div>
               حضور اليوم
             </h2>
-            <Link href="/workers" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/workers" prefetch={true} className="text-xs font-black text-blue-600 hover:underline underline-offset-4">
               التفاصيل
             </Link>
           </div>
@@ -226,7 +226,7 @@ export default function Dashboard() {
               </div>
               مهام عاجلة ({highCount})
             </h2>
-            <Link href="/tasks" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/tasks" prefetch={true} className="text-xs font-black text-blue-600 hover:underline underline-offset-4">
               كل المهام
             </Link>
           </div>
@@ -247,7 +247,7 @@ export default function Dashboard() {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 + i * 0.07 }}
-                  className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-900/40 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-violet-200 dark:hover:border-violet-800 transition-all group"
+                  className="flex items-center justify-between p-4 bg-white/60 dark:bg-slate-900/40 rounded-3xl border border-slate-100 dark:border-slate-800 hover:border-blue-200 dark:hover:border-blue-800 transition-all group"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-1.5 h-8 bg-rose-500 rounded-full group-hover:h-10 transition-all" />
@@ -283,7 +283,7 @@ export default function Dashboard() {
               </div>
               تنبيهات المخزون
             </h2>
-            <Link href="/inventory" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/inventory" prefetch={true} className="text-xs font-black text-blue-600 hover:underline underline-offset-4">
               المخزن
             </Link>
           </div>
@@ -322,12 +322,12 @@ export default function Dashboard() {
         >
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
                 <TrendingUp size={16} />
               </div>
               إنجاز المهام الأسبوعي
             </h2>
-            <Link href="/reports" prefetch={true} className="text-xs font-black text-violet-600 hover:underline underline-offset-4">
+            <Link href="/reports" prefetch={true} className="text-xs font-black text-blue-600 hover:underline underline-offset-4">
               التقارير
             </Link>
           </div>
@@ -336,7 +336,7 @@ export default function Dashboard() {
           </div>
           <div className="mt-4 flex items-center gap-4 text-xs font-black text-slate-400">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded bg-gradient-to-t from-violet-600 to-indigo-400" />
+              <div className="w-3 h-3 rounded bg-gradient-to-t from-blue-600 to-sky-400" />
               منجز
             </div>
             <div className="flex items-center gap-1.5">
@@ -349,3 +349,4 @@ export default function Dashboard() {
     </div>
   );
 }
+

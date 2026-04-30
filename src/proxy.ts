@@ -5,8 +5,13 @@ export async function proxy(req: NextRequest) {
   const res = NextResponse.next();
   const pathname = req.nextUrl.pathname;
 
-  // صفحة تسجيل الدخول مفتوحة للجميع
-  if (pathname.startsWith('/login')) {
+  // المسارات المفتوحة (تسجيل الدخول، استعادة كلمة المرور، روابط الأوت)
+  const isAuthPath = pathname.startsWith('/login') || 
+                     pathname.startsWith('/forgot-password') || 
+                     pathname.startsWith('/reset-password') ||
+                     pathname.startsWith('/auth/callback');
+
+  if (isAuthPath) {
     return res;
   }
 
@@ -35,6 +40,11 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // ملاحظة: يمكنك هنا إضافة تحقق إضافي من البريد الإلكتروني أو الدور
+  // لضمان دخول مدير المخزن فقط.
+  // const userEmail = session.user.email;
+  // if (userEmail !== 'mansour@mansour.com') { ... }
+
   return res;
 }
 
@@ -44,8 +54,9 @@ export const config = {
      * نطبق الحماية على جميع المسارات ماعدا:
      * - _next (ملفات Next.js الداخلية)
      * - الأيقونات والصور الثابتة
-     * - login
+     * - login, forgot-password, reset-password, auth/callback
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|login).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$|login|forgot-password|reset-password|auth/callback).*)',
   ],
 };
+

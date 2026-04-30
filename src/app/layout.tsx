@@ -14,7 +14,7 @@ const cairo = Cairo({
 });
 
 export const viewport: Viewport = {
-  themeColor: '#7c3aed',
+  themeColor: '#2563eb',
 };
 
 export const metadata: Metadata = {
@@ -55,3 +55,4 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     </html>
   );
 }
+

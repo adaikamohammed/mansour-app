@@ -17,7 +17,7 @@ import * as XLSX from 'xlsx';
 // ─── رسم بياني شريطي ───
 function BarChart({
   data,
-  color = '#7c3aed',
+  color = '#2563eb',
 }: {
   data: { label: string; value: number; max?: number }[];
   color?: string;
@@ -79,7 +79,7 @@ function getSmoothPath(data: number[], min: number, max: number, height: number,
 }
 
 // ─── رسم خطي ───
-function LineChart({ data, color = '#7c3aed' }: { data: number[]; color?: string }) {
+function LineChart({ data, color = '#2563eb' }: { data: number[]; color?: string }) {
   const min = Math.min(...data);
   const max = Math.max(...data, 1);
   const pad = (max - min) * 0.1 || max * 0.1 || 1;
@@ -266,7 +266,7 @@ export default function ReportsPage() {
 
   const summaryCards = [
     { label: 'نسبة الحضور',       value: `${presentRate}%`, icon: Users,         color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
-    { label: 'مهام منجزة',        value: `${completedCount}/${tasks.length}`,    icon: ClipboardCheck, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20' },
+    { label: 'مهام منجزة',        value: `${completedCount}/${tasks.length}`,    icon: ClipboardCheck, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' },
     { label: 'إجمالي المخزون',    value: formatNumber(totalItems),               icon: Package,        color: 'text-blue-600',   bg: 'bg-blue-50 dark:bg-blue-900/20'   },
     { label: 'أصناف منخفضة',     value: String(lowStockItems.length),            icon: TrendingUp,     color: 'text-rose-600',   bg: 'bg-rose-50 dark:bg-rose-900/20'   },
   ];
@@ -274,7 +274,7 @@ export default function ReportsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -304,8 +304,8 @@ export default function ReportsPage() {
                   <button
                     key={k}
                     onClick={() => { setPeriod(k); setShowPeriod(false); }}
-                    className={`flex w-full items-center px-4 py-3 text-sm font-black hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors ${
-                      period === k ? 'text-violet-600' : 'text-slate-600 dark:text-slate-300'
+                    className={`flex w-full items-center px-4 py-3 text-sm font-black hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors ${
+                      period === k ? 'text-blue-600' : 'text-slate-600 dark:text-slate-300'
                     }`}
                   >
                     {v}
@@ -326,7 +326,7 @@ export default function ReportsPage() {
               <div className="absolute top-full mt-2 left-0 glass-card rounded-2xl border border-white/30 dark:border-slate-700 shadow-xl z-20 min-w-[200px] overflow-hidden flex flex-col">
                 <button
                   onClick={() => { exportWorkersToExcel(); setShowExportOptions(false); }}
-                  className="flex text-right w-full items-center px-4 py-3 text-sm font-black hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors text-slate-700 dark:text-slate-200"
+                  className="flex text-right w-full items-center px-4 py-3 text-sm font-black hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-slate-700 dark:text-slate-200"
                 >
                   📄 تصدير رواتب العمال (Excel)
                 </button>
@@ -389,7 +389,7 @@ export default function ReportsPage() {
           className="glass-card rounded-4xl p-7 flex flex-col items-center"
         >
           <h2 className="text-base font-black text-slate-900 dark:text-white mb-1 self-start flex items-center gap-2">
-            <div className="w-7 h-7 rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
               <Users size={14} />
             </div>
             توزيع حضور العمال
@@ -417,7 +417,7 @@ export default function ReportsPage() {
           </h2>
           <p className="text-xs text-slate-400 font-medium mb-5 self-start">حالة جميع المهام المجدولة</p>
           <DonutChart segments={[
-            { value: completedCount || 0, color: '#7c3aed', label: 'منجز' },
+            { value: completedCount || 0, color: '#2563eb', label: 'منجز' },
             { value: tasks.filter(t => !t.is_completed && t.priority !== 'high').length || 0, color: '#6366f1', label: 'نشط' },
             { value: tasks.filter(t => !t.is_completed && t.priority === 'high').length || 0, color: '#f43f5e', label: 'عاجل' },
           ]} />
@@ -468,11 +468,11 @@ export default function ReportsPage() {
                   </td>
                   <td>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 flex items-center justify-center shrink-0 border border-white dark:border-slate-800 shadow-sm overflow-hidden">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0 border border-white dark:border-slate-800 shadow-sm overflow-hidden">
                         {w.photo_url ? (
                           <img src={w.photo_url} alt={w.name} className="w-full h-full object-cover" />
                         ) : (
-                          <span className="text-[10px] font-black text-violet-600 dark:text-violet-400">
+                          <span className="text-[10px] font-black text-blue-600 dark:text-blue-400">
                             {getInitials(w.name)}
                           </span>
                         )}
@@ -485,7 +485,7 @@ export default function ReportsPage() {
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-20 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-l from-violet-600 to-indigo-400"
+                          className="h-full rounded-full bg-gradient-to-l from-blue-600 to-sky-400"
                           style={{ width: `${w.rate}%` }}
                         />
                       </div>
@@ -507,3 +507,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

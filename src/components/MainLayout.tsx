@@ -6,30 +6,19 @@ import Sidebar from '@/components/Sidebar';
 import Topbar from '@/components/Topbar';
 import PageWrapper from '@/components/PageWrapper';
 import { Menu } from 'lucide-react';
+import Image from 'next/image';
 
 function MansourLogoMini() {
   return (
-    <svg width="28" height="28" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="ml-bg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#1e1b4b" />
-          <stop offset="100%" stopColor="#0f172a" />
-        </linearGradient>
-        <linearGradient id="ml-gold" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#fbbf24" />
-          <stop offset="100%" stopColor="#d97706" />
-        </linearGradient>
-        <linearGradient id="ml-purple" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#7c3aed" />
-          <stop offset="100%" stopColor="#4f46e5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="16" fill="url(#ml-bg)" />
-      <rect x="12" y="32" width="40" height="20" rx="2" fill="url(#ml-purple)" opacity="0.9" />
-      <path d="M8 33 L32 16 L56 33 Z" fill="url(#ml-gold)" />
-      <rect x="26" y="40" width="12" height="12" rx="2" fill="#0f172a" opacity="0.7" />
-      <circle cx="32" cy="16" r="3" fill="#fbbf24" />
-    </svg>
+    <div className="relative flex items-center justify-center overflow-hidden rounded-lg bg-white border border-slate-100 p-0.5 w-7 h-7">
+      <Image 
+        src="/logo.png" 
+        alt="Logo" 
+        width={24} 
+        height={24} 
+        className="object-contain"
+      />
+    </div>
   );
 }
 
@@ -54,7 +43,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setMobileOpen(true)}
-              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-violet-600 dark:text-violet-400"
+              className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400"
             >
               <Menu size={20} />
             </button>
@@ -77,3 +66,4 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     </div>
   );
 }
+

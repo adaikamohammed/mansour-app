@@ -57,7 +57,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
     return { present, absent: totalAbsent, late, rate, expected, net, deductions };
   }, [worker, attendanceArr]);
 
-  if (loading) return <div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center p-20"><div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" /></div>;
 
   if (!worker) {
     return (
@@ -76,7 +76,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
       {/* ── زر الرجوع ── */}
       <button
         onClick={() => router.back()}
-        className="flex items-center gap-2 text-sm font-black text-slate-500 dark:text-slate-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+        className="flex items-center gap-2 text-sm font-black text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
       >
         <ArrowRight size={18} />
         العودة للعمال
@@ -88,17 +88,17 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
         animate={{ opacity: 1, y: 0 }}
         className="glass-card rounded-4xl overflow-hidden shadow-xl"
       >
-        <div className="h-32 bg-gradient-to-l from-violet-600 to-indigo-500 relative">
+        <div className="h-32 bg-gradient-to-l from-blue-600 to-sky-500 relative">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
         </div>
 
         <div className="px-8 pb-8 relative">
           <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-12 mb-6">
-            <div className="w-24 h-24 rounded-3xl border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 shrink-0 overflow-hidden relative group">
+            <div className="w-24 h-24 rounded-3xl border-4 border-white dark:border-slate-900 shadow-xl flex items-center justify-center bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 shrink-0 overflow-hidden relative group">
               {worker.photo_url ? (
                 <img src={worker.photo_url} alt={worker.name} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
               ) : (
-                <span className="text-4xl font-black text-violet-600 dark:text-violet-400">
+                <span className="text-4xl font-black text-blue-600 dark:text-blue-400">
                   {getInitials(worker.name)}
                 </span>
               )}
@@ -111,7 +111,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
                     {STATUS_LABELS[worker.today_status]}
                   </Badge>
                 )}
-                <span className="text-sm font-black text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/20 px-3 py-1 rounded-lg">
+                <span className="text-sm font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-lg">
                   {formatCurrency(worker.daily_rate)} / يوم
                 </span>
               </div>
@@ -126,7 +126,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
             ].map(item => (
               <div key={item.label} className="p-4 bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-white/50 dark:border-slate-800/50">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-violet-500">{item.icon}</span>
+                  <span className="text-blue-500">{item.icon}</span>
                   <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">{item.label}</span>
                 </div>
                 <p className="font-black text-slate-800 dark:text-white text-sm" dir={item.ltr ? 'ltr' : undefined}>{item.value}</p>
@@ -142,7 +142,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
           { label: 'أيام الحضور', value: stats.present, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', icon: <CheckCircle2 size={20} /> },
           { label: 'أيام الغياب',  value: stats.absent,  color: 'text-rose-600',    bg: 'bg-rose-50 dark:bg-rose-900/20',     icon: <XCircle size={20} />      },
           { label: 'تأخر',          value: stats.late,    color: 'text-amber-600',   bg: 'bg-amber-50 dark:bg-amber-900/20',   icon: <Clock size={20} />        },
-          { label: 'نسبة الحضور', value: `${stats.rate}%`, color: 'text-violet-600', bg: 'bg-violet-50 dark:bg-violet-900/20', icon: <TrendingUp size={20} /> },
+          { label: 'نسبة الحضور', value: `${stats.rate}%`, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20', icon: <TrendingUp size={20} /> },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -199,7 +199,7 @@ export default function WorkerDetailPage({ params }: { params: { id: string } })
         className="glass-card rounded-4xl overflow-hidden shadow-xl"
       >
         <div className="flex items-center gap-3 px-8 py-6 border-b border-slate-100 dark:border-slate-800">
-          <div className="w-9 h-9 rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
             <Calendar size={18} />
           </div>
           <h2 className="text-lg font-black text-slate-900 dark:text-white">سجل الحضور الكامل</h2>

@@ -14,3 +14,4 @@ const Skeleton = ({ className }: { className?: string }) => {
 };
 
 export default Skeleton;
+

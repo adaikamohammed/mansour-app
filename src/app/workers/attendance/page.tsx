@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronRight, ChevronLeft, CheckCircle2, XCircle, Clock,
-  Save, Calendar, ClipboardList, LayoutGrid
+  Save, Calendar, ClipboardList, LayoutGrid, Users
 } from 'lucide-react';
 import { useWorkers } from '@/lib/hooks/useWorkers';
 import { useAuth, canEdit } from '@/lib/auth';
@@ -12,6 +12,7 @@ import { useToast } from '@/components/ui/Toast';
 import Badge from '@/components/ui/Badge';
 import Button from '@/components/ui/Button';
 import { Select, Textarea } from '@/components/ui/Input';
+import Modal from '@/components/ui/Modal';
 import { formatDate, today, getInitials, formatCurrency, calcDiscount } from '@/lib/utils';
 import type { AttendanceStatus } from '@/lib/types';
 import { STATUS_LABELS } from '@/lib/types';
@@ -87,6 +88,16 @@ export default function AttendancePage() {
 
   // History Mode State
   const [historyMonth, setHistoryMonth] = useState(today().substring(0, 7));
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
+
+  const selectedWorker = workers.find(w => w.id === selectedWorkerId);
+
+  const calendarDays = useMemo(() => {
+    const [year, month] = historyMonth.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1).getDay(); // 0=Sunday
+    // تحويل الأحد ليكون 0 (أو حسب رغبتك، هنا الأحد هو 0)
+    return { padding: firstDay };
+  }, [historyMonth]);
 
   // تهيئة تسجيل اليوم
   useEffect(() => {
@@ -198,14 +209,14 @@ export default function AttendancePage() {
       <div className="flex bg-slate-100 dark:bg-slate-900/50 p-1 rounded-2xl w-full max-w-md mx-auto">
         <button
           onClick={() => setActiveTab('daily')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-xl transition-all ${activeTab === 'daily' ? 'bg-white dark:bg-slate-800 shadow-sm text-violet-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-xl transition-all ${activeTab === 'daily' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           <ClipboardList size={18} />
           تسجيل اليوم
         </button>
         <button
           onClick={() => setActiveTab('history')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-xl transition-all ${activeTab === 'history' ? 'bg-white dark:bg-slate-800 shadow-sm text-violet-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-black rounded-xl transition-all ${activeTab === 'history' ? 'bg-white dark:bg-slate-800 shadow-sm text-blue-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           <LayoutGrid size={18} />
           السجل التاريخي
@@ -221,13 +232,13 @@ export default function AttendancePage() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setDate(addDays(date, -1))}
-                  className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/30 transition-all"
+                  className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 transition-all"
                 >
                   <ChevronRight size={20} />
                 </button>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center">
                     <Calendar size={18} />
                   </div>
                   <div>
@@ -235,7 +246,7 @@ export default function AttendancePage() {
                       {formatDate(date, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                     </h2>
                     {date === today() && (
-                      <span className="text-[11px] font-black text-violet-600">اليوم</span>
+                      <span className="text-[11px] font-black text-blue-600">اليوم</span>
                     )}
                   </div>
                 </div>
@@ -243,7 +254,7 @@ export default function AttendancePage() {
                 <button
                   onClick={() => setDate(addDays(date, 1))}
                   disabled={date >= today()}
-                  className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-violet-100 hover:text-violet-600 dark:hover:bg-violet-900/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:bg-blue-100 hover:text-blue-600 dark:hover:bg-blue-900/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft size={20} />
                 </button>
@@ -329,11 +340,11 @@ export default function AttendancePage() {
                           </button>
 
                           {/* الأفاتار والاسم */}
-                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-900/30 dark:to-indigo-900/30 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-100 to-sky-100 dark:from-blue-900/30 dark:to-sky-900/30 flex items-center justify-center shrink-0 overflow-hidden">
                             {worker.photo_url ? (
                               <img src={worker.photo_url} alt={worker.name} className="w-full h-full object-cover" />
                             ) : (
-                              <span className="font-black text-violet-600 dark:text-violet-400">{getInitials(worker.name)}</span>
+                              <span className="font-black text-blue-600 dark:text-blue-400">{getInitials(worker.name)}</span>
                             )}
                           </div>
 
@@ -359,7 +370,7 @@ export default function AttendancePage() {
                             {status !== 'present' && (
                               <button
                                 onClick={() => setExpandedWorker(isExpanded ? null : worker.id)}
-                                className="text-[10px] font-black text-violet-600 hover:underline underline-offset-4"
+                                className="text-[10px] font-black text-blue-600 hover:underline underline-offset-4"
                               >
                                 {isExpanded ? 'إخفاء' : 'إضافة ملاحظة'}
                               </button>
@@ -399,7 +410,7 @@ export default function AttendancePage() {
 
             {workers.length > 0 && isManager && (
               <div className="sticky bottom-6 flex justify-center pt-4">
-                <Button onClick={saveAttendance} loading={saving} icon={<Save size={18} />} size="lg" className="shadow-2xl shadow-violet-500/30 px-12">
+                <Button onClick={saveAttendance} loading={saving} icon={<Save size={18} />} size="lg" className="shadow-2xl shadow-blue-500/30 px-12">
                   حفظ حضور اليوم ({workers.length} عامل)
                 </Button>
               </div>
@@ -408,125 +419,169 @@ export default function AttendancePage() {
         ) : (
           <motion.div key="history" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
             
-            {/* ─── فلتر السجل التاريخي ─── */}
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-2">
-                <Calendar size={18} className="text-violet-500" />
-                سجل الحضور الشهري
-              </h3>
-              <input 
-                type="month" 
-                value={historyMonth} 
-                title="اختر الشهر لعرض السجل"
-                aria-label="منتقي الشهر للسجل"
-                onChange={(e) => setHistoryMonth(e.target.value || today().substring(0, 7))} 
-                className="form-input w-48 bg-white cursor-pointer shadow-sm text-sm font-bold"
-              />
+            {/* ─── فلتر السجل التاريخي والبحث ─── */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <h3 className="font-black text-slate-800 dark:text-white flex items-center gap-2 text-xl">
+                  <Calendar size={22} className="text-blue-500" />
+                  سجل الحضور الشهري
+                </h3>
+                <p className="text-xs text-slate-400 font-bold mr-8 mt-1">تتبع حضور العمال عبر تقويم تفاعلي</p>
+              </div>
+              <div className="flex items-center gap-2 w-full md:w-auto">
+                <input 
+                  type="month" 
+                  value={historyMonth} 
+                  title="اختر الشهر لعرض السجل"
+                  aria-label="منتقي الشهر للسجل"
+                  onChange={(e) => setHistoryMonth(e.target.value || today().substring(0, 7))} 
+                  className="form-input flex-1 md:w-48 bg-white dark:bg-slate-900 cursor-pointer shadow-sm text-sm font-bold border-slate-200 dark:border-slate-800"
+                />
+              </div>
             </div>
 
-            {/* ─── شبكة الحضور ─── */}
-            <div className="glass-card rounded-4xl overflow-hidden shadow-xl overflow-x-auto pb-4" dir="rtl">
-              {loading ? (
-                <div className="p-8 text-center text-slate-400">تحميل السجل...</div>
-              ) : workers.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 font-bold">لا يوجد عمال لعرض السجل</div>
-              ) : (
-                <div className="min-w-max p-4 sm:p-6 w-full overflow-x-auto pb-8">
-                  {/* الرأس: التواريخ */}
-                  <div className="flex mb-3 pr-[230px]">
-                    <div className="flex gap-1">
-                      {historyData.dates.map((d) => {
-                        const day = d.split('-')[2];
-                        const theDate = new Date(d);
-                        return (
-                          <div key={d} className="w-9 shrink-0 flex flex-col items-center justify-end leading-tight">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{theDate.toLocaleString('ar-DZ', {month: 'short'})}</span>
-                            <span className="text-sm font-black text-slate-700 dark:text-slate-300">{day}</span>
-                          </div>
-                        )
-                      })}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* ─── قائمة العمال (Selector) ─── */}
+              <div className="lg:col-span-1 space-y-3">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-2">اختر العامل</p>
+                <div className="glass-card rounded-3xl p-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+                  {workers.map(w => (
+                    <button
+                      key={w.id}
+                      onClick={() => setSelectedWorkerId(w.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all mb-1 ${selectedWorkerId === w.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                    >
+                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-black ${selectedWorkerId === w.id ? 'bg-white/20' : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'}`}>
+                        {getInitials(w.name)}
+                      </div>
+                      <span className="text-sm font-bold truncate">{w.name}</span>
+                      {selectedWorkerId === w.id && <ChevronLeft size={16} className="mr-auto" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ─── التقويم الجميل ─── */}
+              <div className="lg:col-span-3">
+                {!selectedWorkerId ? (
+                  <div className="h-full min-h-[400px] glass-card rounded-4xl flex flex-col items-center justify-center text-center p-8">
+                    <div className="w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-500 flex items-center justify-center mb-4">
+                      <Users size={40} />
                     </div>
+                    <h4 className="text-lg font-black text-slate-800 dark:text-white">يرجى اختيار عامل</h4>
+                    <p className="text-sm text-slate-400 mt-2">اختر عاملاً من القائمة الجانبية لعرض تقويمه الشهري</p>
                   </div>
-
-                  {/* الصفوف: العمال */}
-                  <div className="space-y-2">
-                    {workers.map((worker) => (
-                      <div key={worker.id} className="flex items-center group relative w-max">
-                        {/* اسم العامل */}
-                        <div className="w-[220px] shrink-0 sticky right-0 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md px-3 py-1.5 flex items-center gap-3 z-20 border-l border-slate-100 dark:border-slate-800 rounded-l-2xl shadow-sm h-12 ml-2">
-                          <div className="w-8 h-8 rounded-xl bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 flex items-center justify-center shrink-0 overflow-hidden shadow-inner">
-                            {worker.photo_url ? (
-                              <img src={worker.photo_url} alt={worker.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <span className="font-black text-xs">{getInitials(worker.name)}</span>
-                            )}
-                          </div>
-                          <span className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{worker.name}</span>
+                ) : (
+                  <motion.div
+                    key={selectedWorkerId}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card rounded-4xl overflow-hidden shadow-xl"
+                  >
+                    {/* رأس التقويم */}
+                    <div className="bg-gradient-to-l from-blue-600 to-sky-500 p-6 text-white">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 overflow-hidden shadow-inner">
+                          {selectedWorker?.photo_url ? (
+                            <img src={selectedWorker.photo_url} alt={selectedWorker.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-2xl font-black">{getInitials(selectedWorker?.name || '')}</span>
+                          )}
                         </div>
-
-                        {/* نقاط الحضور */}
-                        <div className="flex gap-1">
-                          {historyData.dates.map(date => {
-                            const rec = historyData.matrix[worker.id]?.[date];
-                            const status = rec?.status;
-                            
-                            // تحقق من تاريخ الانضمام
-                            const isJoined = new Date(date) >= new Date(worker.join_date);
-                            
-                            const conf = status ? statusConfig[status] : null;
-                            const bgStyle = conf ? conf.bg.replace('text-white', '') : 'bg-slate-100 dark:bg-slate-800/50';
-                            
-                            if (!isJoined) {
-                              return (
-                                <div key={date} className="w-9 h-9 rounded-xl flex items-center justify-center opacity-20 cursor-not-allowed bg-slate-50 dark:bg-slate-900/20" title="لم يكن منضماً">
-                                  <div className="w-1 h-3 bg-slate-300 dark:bg-slate-700 rotate-45" />
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <button
-                                key={date}
-                                onClick={() => isManager && toggleHistoryStatus(worker, date)}
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center relative group/dot transition-all ${isManager ? 'hover:scale-110 hover:shadow-lg focus:outline-none' : 'cursor-default'} ${bgStyle}`}
-                              >
-                                {!status && <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600 opacity-50" />}
-                                
-                                {/* نافذة تلميح للملاحظات (Tooltip) */}
-                                <div className="absolute bottom-full mb-3 bg-slate-800 text-white text-xs px-3 py-2 rounded-xl shadow-xl w-max right-1/2 translate-x-1/2 opacity-0 group-hover/dot:opacity-100 pointer-events-none transition-all scale-95 group-hover/dot:scale-100 z-[100]">
-                                  {status && <div className="font-black border-b border-slate-600/50 pb-1.5 mb-1.5">{STATUS_LABELS[status]}</div>}
-                                  <div className="text-slate-300 font-bold leading-tight">{!status ? 'تسجيل/تعديل الحضور' : (rec?.note || 'انقر لتعديل الحالة')}</div>
-                                  <div className="absolute top-full right-1/2 translate-x-1/2 border-[5px] border-transparent border-t-slate-800" />
-                                </div>
-                              </button>
-                            );
-                          })}
+                        <div>
+                          <h4 className="text-xl font-black">{selectedWorker?.name}</h4>
+                          <p className="text-sm text-white/80 font-bold">تقويم شهر {new Date(historyMonth).toLocaleString('ar-DZ', { month: 'long', year: 'numeric' })}</p>
+                        </div>
+                        <div className="mr-auto flex gap-2">
+                           <div className="text-center bg-white/10 px-3 py-1 rounded-xl backdrop-blur-sm">
+                             <p className="text-[10px] opacity-70">حاضر</p>
+                             <p className="text-lg font-black">{Object.values(historyData.matrix[selectedWorkerId] || {}).filter(v => v?.status === 'present').length}</p>
+                           </div>
+                           <div className="text-center bg-white/10 px-3 py-1 rounded-xl backdrop-blur-sm">
+                             <p className="text-[10px] opacity-70">غائب</p>
+                             <p className="text-lg font-black text-rose-200">{Object.values(historyData.matrix[selectedWorkerId] || {}).filter(v => v?.status === 'absent').length}</p>
+                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {/* المفتاح / الدليل */}
-                  <div className="mt-8 flex gap-6 items-center justify-center pt-6 border-t border-slate-100 dark:border-slate-800 dir-rtl">
-                    <div className="flex items-center gap-2">
-                       <div className="w-3.5 h-3.5 rounded-md bg-emerald-500" />
-                       <span className="text-sm font-black text-slate-500">حاضر</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                       <div className="w-3.5 h-3.5 rounded-md bg-amber-500" />
-                       <span className="text-sm font-black text-slate-500">متأخر</span>
+
+                    {/* شبكة التقويم */}
+                    <div className="p-6">
+                      {/* أيام الأسبوع */}
+                      <div className="grid grid-cols-7 mb-4">
+                        {['أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].map(day => (
+                          <div key={day} className="text-center text-[11px] font-black text-slate-400 uppercase tracking-tighter py-2">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-3">
+                        {/* خانات فارغة قبل بداية الشهر */}
+                        {Array(calendarDays.padding).fill(0).map((_, i) => (
+                          <div key={`pad-${i}`} className="aspect-square rounded-2xl bg-slate-50 dark:bg-slate-900/20 opacity-30" />
+                        ))}
+
+                        {/* أيام الشهر */}
+                        {historyData.dates.map((dateStr, i) => {
+                          const day = dateStr.split('-')[2];
+                          const rec = historyData.matrix[selectedWorkerId]?.[dateStr];
+                          const status = rec?.status;
+                          const isJoined = new Date(dateStr) >= new Date(selectedWorker?.join_date || '');
+                          
+                          const cfg = status ? statusConfig[status] : null;
+
+                          return (
+                            <button
+                              key={dateStr}
+                              disabled={!isJoined || !isManager}
+                              onClick={() => isManager && toggleHistoryStatus(selectedWorker, dateStr)}
+                              className={`
+                                aspect-square rounded-2xl flex flex-col items-center justify-center relative group/day transition-all
+                                ${!isJoined ? 'bg-slate-50 dark:bg-slate-900/20 opacity-10 cursor-not-allowed' : 'border border-slate-100 dark:border-slate-800 hover:shadow-lg hover:-translate-y-1'}
+                                ${status === 'present' ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100' : ''}
+                                ${status === 'absent' ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-100' : ''}
+                                ${status === 'late' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-100' : ''}
+                                ${!status && isJoined ? 'bg-white dark:bg-slate-900' : ''}
+                              `}
+                            >
+                              <span className={`text-sm font-black ${status ? cfg?.text : 'text-slate-600 dark:text-slate-400'}`}>{day}</span>
+                              {status && <div className={`w-1.5 h-1.5 rounded-full mt-1 ${cfg?.dotColor}`} />}
+                              
+                              {/* الملاحظة إن وجدت */}
+                              {rec?.note && (
+                                <div className="absolute top-1 left-1 w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                              )}
+
+                              {/* Tooltip */}
+                              {isJoined && (
+                                <div className="absolute bottom-full mb-2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded-lg opacity-0 group-hover/day:opacity-100 pointer-events-none transition-all z-50 whitespace-nowrap">
+                                  {status ? STATUS_LABELS[status] : 'لم يسجل'}
+                                  {rec?.note && <p className="text-[8px] text-slate-300 mt-0.5">{rec.note}</p>}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* المفتاح */}
+                      <div className="mt-8 flex flex-wrap gap-4 items-center justify-center pt-6 border-t border-slate-100 dark:border-slate-800">
+                        {Object.entries(statusConfig).map(([key, cfg]) => (
+                          <div key={key} className="flex items-center gap-2">
+                             <div className={`w-3 h-3 rounded-full ${cfg.dotColor}`} />
+                             <span className="text-[11px] font-black text-slate-500">{STATUS_LABELS[key as AttendanceStatus]}</span>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-2">
+                           <div className="w-3 h-3 rounded-full bg-slate-200 dark:bg-slate-700" />
+                           <span className="text-[11px] font-black text-slate-500">لم يسجل</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                       <div className="w-3.5 h-3.5 rounded-md bg-rose-500" />
-                       <span className="text-sm font-black text-slate-500">غائب</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                       <div className="w-3.5 h-3.5 rounded-md bg-slate-200 dark:bg-slate-800" />
-                       <span className="text-sm font-black text-slate-500">لم يسجل</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </div>
             </div>
           </motion.div>
         )}
@@ -534,3 +589,4 @@ export default function AttendancePage() {
     </div>
   );
 }
+

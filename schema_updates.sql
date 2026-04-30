@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS worker_payments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- تحديث الصلاحيات للمدفوعات
+-- تحديث الصلاحيات للمدفوعات والسلفيات
 ALTER TABLE worker_payments DISABLE ROW LEVEL SECURITY;
+ALTER TABLE worker_advances DISABLE ROW LEVEL SECURITY;
 NOTIFY pgrst, 'reload schema';
