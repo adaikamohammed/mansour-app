@@ -5,12 +5,14 @@ import './globals.css';
 import MainLayout from '@/components/MainLayout';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ToastProvider } from '@/components/ui/Toast';
+import { InventoryProvider } from '@/lib/context/InventoryContext';
 
 const cairo = Cairo({
   subsets: ['arabic', 'latin'],
-  weight: ['300', '400', '500', '600', '700', '900'],
+  weight: ['400', '700', '900'],
   variable: '--font-cairo',
   display: 'swap',
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -79,9 +81,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="font-cairo antialiased">
         <ThemeProvider>
           <ToastProvider>
-            <MainLayout>
-              {children}
-            </MainLayout>
+            <InventoryProvider>
+              <MainLayout>
+                {children}
+              </MainLayout>
+            </InventoryProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>

@@ -21,7 +21,7 @@ export function useWorkers() {
         .from('workers')
         .select(`
           *,
-          attendance(*),
+          attendance(date, status, note),
           worker_advances(*),
           worker_payments(*)
         `)

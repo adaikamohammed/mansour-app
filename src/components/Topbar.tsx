@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Bell, Calendar, Package } from 'lucide-react';
 import { formatDate, formatTime } from '@/lib/utils';
-import { useInventory } from '@/lib/hooks/useInventory';
+import { useInventoryCtx } from '@/lib/context/InventoryContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/lib/auth';
 
@@ -20,7 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
 export default function Topbar() {
   const pathname = usePathname();
   const [now, setNow] = useState(new Date());
-  const { lowStockItems } = useInventory();
+  const { lowStockItems } = useInventoryCtx();
   const { role } = useAuth();
   const [showNotifs, setShowNotifs] = useState(false);
 

@@ -98,7 +98,6 @@
     background-image:
       radial-gradient(ellipse at 0% 0%, hsla(215, 100%, 50%, 0.06) 0%, transparent 55%),
       radial-gradient(ellipse at 100% 100%, hsla(210, 100%, 50%, 0.06) 0%, transparent 55%);
-    background-attachment: fixed;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
 
@@ -125,9 +124,9 @@
 
   /* --- بطاقة الزجاج (Glassmorphism) --- */
   .glass-card {
-    background: hsla(0, 0%, 100%, 0.75);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    background: hsla(0, 0%, 100%, 0.85);
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
     border: 1px solid hsla(0, 0%, 100%, 0.3);
     box-shadow:
       0 4px 24px rgba(0, 0, 0, 0.06),
@@ -137,12 +136,26 @@
   }
 
   .dark .glass-card {
-    background: hsla(224, 71%, 5%, 0.7);
+    background: hsla(224, 71%, 5%, 0.85);
     border: 1px solid hsla(215, 28%, 20%, 0.5);
     box-shadow:
       0 4px 24px rgba(0, 0, 0, 0.3),
       0 1px 2px rgba(0, 0, 0, 0.2),
       inset 0 1px 0 hsla(224, 71%, 15%, 0.3);
+  }
+
+  /* على الموبايل: إيقاف blur لتحسين الأداء */
+  @media (max-width: 768px) {
+    .glass-card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: hsla(0, 0%, 100%, 0.96);
+    }
+    .dark .glass-card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: hsla(224, 71%, 6%, 0.97);
+    }
   }
 
   /* --- المدخلات الموحّدة --- */
@@ -421,10 +434,12 @@
 }
 
 /* ============================================
-   Transitions العامة
+   Transitions العامة — فقط للعناصر التفاعلية
    ============================================ */
-* {
-  transition-property: background-color, border-color, color, fill, stroke;
+a, button, input, select, textarea,
+[role="button"], [role="checkbox"], [role="radio"],
+.sidebar-item, .btn, .form-input, .badge {
+  transition-property: background-color, border-color, color, box-shadow, opacity;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }

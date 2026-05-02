@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
-import { useInventory } from '@/lib/hooks/useInventory';
+import { useInventoryCtx } from '@/lib/context/InventoryContext';
 
 /* ─── لوغو مخزن منصور ─── */
 function MansourLogo({ size = 40 }: { size?: number }) {
@@ -44,7 +44,7 @@ export default function Sidebar({ mobileOpen, setMobileOpen }: { mobileOpen?: bo
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const { role, signOut } = useAuth();
-  const { lowStockItems } = useInventory();
+  const { lowStockItems } = useInventoryCtx();
   const [collapsed, setCollapsed] = useState(false);
 
   // استعادة حالة الطي من localStorage
