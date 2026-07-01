@@ -7,6 +7,20 @@ import type { InventoryCategory, InventoryFormData } from '@/lib/types';
 
 
 
+function getErrorMessage(e: any, defaultMsg: string): string {
+  if (!e) return defaultMsg;
+  if (typeof e === 'string') return e;
+  if (e.message) return e.message;
+  if (e.details) return e.details;
+  if (e.hint) return e.hint;
+  if (e.error_description) return e.error_description;
+  try {
+    return JSON.stringify(e);
+  } catch {
+    return String(e);
+  }
+}
+
 export function useInventory() {
   const [items, setItems] = useState<InventoryCategory[]>([]);
   const [forecasts, setForecasts] = useState<Record<string, number>>({});
@@ -59,7 +73,7 @@ export function useInventory() {
         setForecasts(newForecasts);
       }
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل تحميل المخزون');
+      setError(getErrorMessage(e, 'فشل تحميل المخزون'));
     } finally {
       setLoading(false);
     }
@@ -67,11 +81,11 @@ export function useInventory() {
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
-  const addCategory = async (data: InventoryFormData): Promise<boolean> => {
+  const addCategory = async (data: InventoryFormData): Promise<{ success: boolean; error?: string }> => {
     try {
       const { data: cat, error: err1 } = await supabase
         .from('inventory_categories')
-        .insert({ main_type: data.main_type, sub_type: data.sub_type, unit: data.unit, min_stock_level: data.min_stock_level || 50 })
+        .insert({ main_type: data.main_type, sub_type: data.sub_type, unit: data.unit, min_stock_level: data.min_stock_level || 50, unit_price: 0 })
         .select()
         .single();
       if (err1) throw err1;
@@ -80,14 +94,15 @@ export function useInventory() {
         .insert({ category_id: cat.id, quantity: data.initial_quantity });
       if (err2) throw err2;
       await fetchItems();
-      return true;
+      return { success: true };
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل إضافة الصنف');
-      return false;
+      const errMsg = getErrorMessage(e, 'فشل إضافة الصنف');
+      setError(errMsg);
+      return { success: false, error: errMsg };
     }
   };
 
-  const updateCategory = async (id: string, updates: Partial<InventoryFormData>): Promise<boolean> => {
+  const updateCategory = async (id: string, updates: Partial<InventoryFormData>): Promise<{ success: boolean; error?: string }> => {
     try {
       const { error: err } = await supabase
         .from('inventory_categories')
@@ -100,14 +115,15 @@ export function useInventory() {
         .eq('id', id);
       if (err) throw err;
       await fetchItems();
-      return true;
+      return { success: true };
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل تعديل الصنف');
-      return false;
+      const errMsg = getErrorMessage(e, 'فشل تعديل الصنف');
+      setError(errMsg);
+      return { success: false, error: errMsg };
     }
   };
 
-  const updateQuantity = async (categoryId: string, newQty: number): Promise<boolean> => {
+  const updateQuantity = async (categoryId: string, newQty: number): Promise<{ success: boolean; error?: string }> => {
     try {
       const { error: err } = await supabase
         .from('inventory_stock')
@@ -115,14 +131,15 @@ export function useInventory() {
         .eq('category_id', categoryId);
       if (err) throw err;
       await fetchItems();
-      return true;
+      return { success: true };
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل تحديث الكمية');
-      return false;
+      const errMsg = getErrorMessage(e, 'فشل تحديث الكمية');
+      setError(errMsg);
+      return { success: false, error: errMsg };
     }
   };
 
-  const recordTransaction = async (categoryId: string, currentQty: number, quantity: number, type: 'in' | 'out', note?: string): Promise<boolean> => {
+  const recordTransaction = async (categoryId: string, currentQty: number, quantity: number, type: 'in' | 'out', note?: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const newQty = type === 'in' ? currentQty + quantity : currentQty - quantity;
       if (newQty < 0) throw new Error('الكمية الحالية لا تكفي لإتمام عملية الاستخراج');
@@ -161,23 +178,25 @@ export function useInventory() {
       if (err2) throw err2;
 
       await fetchItems();
-      return true;
+      return { success: true };
     } catch (e: any) {
       console.error('recordTransaction error details:', JSON.stringify(e, null, 2), e);
-      setError(e?.message || 'فشل تسجيل العملية');
-      return false;
+      const errMsg = getErrorMessage(e, 'فشل تسجيل العملية');
+      setError(errMsg);
+      return { success: false, error: errMsg };
     }
   };
 
-  const deleteCategory = async (id: string): Promise<boolean> => {
+  const deleteCategory = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const { error: err } = await supabase.from('inventory_categories').delete().eq('id', id);
       if (err) throw err;
       await fetchItems();
-      return true;
+      return { success: true };
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'فشل حذف الصنف');
-      return false;
+      const errMsg = getErrorMessage(e, 'فشل حذف الصنف');
+      setError(errMsg);
+      return { success: false, error: errMsg };
     }
   };
 

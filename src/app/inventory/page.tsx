@@ -80,20 +80,22 @@ export default function InventoryPage() {
   const handleAdd = async () => {
     if (!validate()) return;
     setSaving(true);
-    let ok = false;
+    let res: { success: boolean; error?: string } = { success: false };
     const formToSave = { ...form };
     if (editTargetId) {
-      ok = await editItem(editTargetId, formToSave);
+      res = await editItem(editTargetId, formToSave);
     } else {
-      ok = await addItem(formToSave);
+      res = await addItem(formToSave);
     }
     setSaving(false);
-    if (ok) {
+    if (res.success) {
       success(editTargetId ? 'تم تعديل الصنف بنجاح ✅' : 'تمت إضافة الصنف بنجاح ✅');
       setShowAddModal(false);
       setForm(emptyForm);
       setEditTargetId(null);
-    } else toastError(editTargetId ? 'فشل التعديل' : 'فشلت الإضافة');
+    } else {
+      toastError(editTargetId ? `فشل التعديل: ${res.error || ''}` : `فشلت الإضافة: ${res.error || ''}`);
+    }
   };
 
   const openEditModal = (item: any) => {
@@ -111,10 +113,10 @@ export default function InventoryPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    const ok = await deleteItem(deleteTarget);
+    const res = await deleteItem(deleteTarget);
     setDeleting(false);
-    if (ok) { success('تم حذف الصنف 🗑️'); setDeleteTarget(null); }
-    else toastError('فشل الحذف');
+    if (res.success) { success('تم حذف الصنف 🗑️'); setDeleteTarget(null); }
+    else toastError(`فشل الحذف: ${res.error || ''}`);
   };
 
   const openTransactionModal = (item: any, defaultType: 'in' | 'out') => {
@@ -138,14 +140,14 @@ export default function InventoryPage() {
     }
 
     setRecordingTx(true);
-    const ok = await recordTransaction(txTarget.id, currentStock, qty, txType, txNote);
+    const res = await recordTransaction(txTarget.id, currentStock, qty, txType, txNote);
     setRecordingTx(false);
     
-    if (ok) {
+    if (res.success) {
       success('تم تسجيل الحركة وتحديث المخزون بنجاح ✅');
       setTxTarget(null);
     } else {
-      toastError(inventoryError || 'فشل التسجيل. ربما لم تقم بإنشاء جدول الحركات (inventory_transactions) في Supabase!');
+      toastError(res.error || 'فشل التسجيل. ربما لم تقم بإنشاء جدول الحركات (inventory_transactions) في Supabase!');
     }
   };
 
