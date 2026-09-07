@@ -1,0 +1,17 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # يعمل تلقائياً كل 3 أيام الساعة 12:00 ظهراً بتوقيت UTC
+    - cron: '0 12 */3 * *'
+  workflow_dispatch: # يتيح لك تشغيله يدوياً من GitHub في أي وقت
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase & Vercel API
+        run: |
+          echo "Pinging Mansour App API to prevent Supabase from pausing..."
+          curl -s -f "https://mansour-app.vercel.app/api/ping" || curl -s "https://uzjosnikymcydljsalxc.supabase.co/rest/v1/"
+          echo "Ping completed successfully!"
